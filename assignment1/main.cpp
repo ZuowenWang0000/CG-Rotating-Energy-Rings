@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <unistd.h>
 using namespace std;
 using glm::vec3;
 using glm::mat4;
@@ -20,9 +21,14 @@ int y_press_num = 0;
 int z_press_num = 0;
 int angle_press_num = 0;
 
+double lookX = 0;
+double lookY = 0;
+double lookZ = 0;
+
 float scale = 1.0f;
 
 GLuint VBOs[5], VAOs[5];
+GLuint EBO;
 
 bool checkStatus(
 	GLuint objectID,
@@ -157,6 +163,32 @@ void keyboard(unsigned char key, int x, int y)
 		angle_press_num += 1;
 	}
 
+	if (key == 'u')
+	{
+		lookX = lookX +0.1;
+	}
+	if (key == 'i')
+	{
+		lookY = lookY +0.1;
+	}
+	if (key == 'o')
+	{
+		lookZ = lookX +0.1;
+	}
+
+		if (key == 'j')
+	{
+		lookX = lookX -0.1;
+	}
+	if (key == 'k')
+	{
+		lookY = lookY -0.1;
+	}
+	if (key == 'l')
+	{
+		lookZ = lookX -0.1;
+	}
+
 }
 
 void mouse(int button, int state, int x, int y){
@@ -178,7 +210,36 @@ void sendDataToOpenGL()
  	glGenVertexArrays(5,VAOs);	
 	glGenBuffers(5,VBOs);
 
-	
+	//****************0. GROUND *********************
+	//using indexing
+	const GLfloat ground[] = {
+		-5.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		-5.0f, +5.0f, 0.0f, 0.0f, 0.0f, 0.0f,		
+		+5.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		+5.0f, +5.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+	};
+
+	GLushort indexforground[] = {
+		0,1,2,
+		1,2,3,
+	};
+
+
+	glBindVertexArray(VAOs[4]);
+	glBindBuffer(GL_ARRAY_BUFFER,VBOs[4]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(ground), ground, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexforground), indexforground, GL_STATIC_DRAW);
+	//pass the position of the point to openGL
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+	//pass the color of the point to openGL
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (char*)(3 * sizeof(float)));
+
+
 	//****************1. POINT *******STARTS******************
 	const GLfloat point1[] = {
 		-0.0f, -0.0f, -0.0f, //point position
@@ -284,6 +345,8 @@ void sendDataToOpenGL()
 	};
 
 
+
+
 	glBindVertexArray(VAOs[1]);  //the VAO for point
 	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubic1), cubic1, GL_STATIC_DRAW);
@@ -295,10 +358,169 @@ void sendDataToOpenGL()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (char*)(3 * sizeof(float)));
 
 
-//********************** THIRD OBJECT *****************************************
+
+//**********************OBJECT3 Bank of China Tower ******************
+	// GLfloat r = (float) ((double)rand() / (double)RAND_MAX);
+	// GLfloat g = (float) ((double)rand() / (double)RAND_MAX);
+	// GLfloat b = (float) ((double)rand() / (double)RAND_MAX);
+	const GLfloat BOChk[] = {
+		+0.0f, +0.0f, +0.0f, +1.0f, +0.0f, 1.0f,
+		+0.0f, +0.0f, +1.0f, +0.0f, +1.0f, 1.0f,
+		+1.0f, +0.0f, +1.0f, +0.0f, +0.0f, 1.0f,
+
+		+0.0f, +0.0f, +0.0f, +1.0f, +1.0f, 0.0f,
+		+0.0f, +0.0f, +1.0f, +0.0f, +0.0f, 0.6f,
+		+1.0f, +0.0f, +0.0f, +0.2f, +0.0f, 0.5f,
+
+		+1.0f, +0.0f, +0.0f, +0.3f, +0.0f, 0.0f,
+		+1.0f, +0.0f, +1.0f, +0.0f, +0.8f, 1.0f,
+		+1.0f, +1.0f, +0.0f, +0.9f, +0.0f, 0.0f,
+
+		+1.0f, +0.0f, +0.0f, +0.3f, +0.0f, 1.0f,
+		+1.0f, +0.0f, +1.0f, +0.0f, +0.2f, 1.0f,
+		+1.0f, +1.0f, +1.0f, +1.0f, +0.3f, 0.0f,
+
+		+1.0f, +1.0f, +0.0f, +0.0f, +0.6f, 0.0f,
+		+1.0f, +1.0f, +1.0f, +1.0f, +0.0f, 1.0f,
+		+0.0f, +1.0f, +0.0f, +0.2f, +0.0f, 1.0f, 
+
+		+1.0f, +1.0f, +0.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +1.0f, +1.0f, +1.0f, +0.3f, 1.0f,
+		+0.0f, +1.0f, +1.0f, +0.1f, +0.0f, 0.0f, 
+
+		+0.0f, +1.0f, +0.0f, +0.4f, +0.0f, 0.0f, 
+		+0.0f, +1.0f, +1.0f, +1.0f, +0.7f, 0.0f, 
+		+0.0f, +0.0f, +0.0f, +0.9f, +0.0f, 0.4f, 
+
+		+0.0f, +1.0f, +0.0f, +1.0f, +0.0f, 0.6f, 
+		+0.0f, +1.0f, +1.0f, +0.0f, +0.7f, 0.0f, 
+		+0.0f, +0.0f, +1.0f, +1.0f, +0.0f, 1.0f,
+
+		+0.0f, +0.0f, +1.0f, +0.4f, +0.3, +0.9f,
+		+1.0f, +0.0f, +1.0f, +0.2f, +0.0, +0.4f,
+		+0.5f, +0.5f, +1.5f, +0.2f, +0.9, +0.0f,
+
+		+1.0f, +0.0f, +1.0f, +0.2f, +0.0, +0.4f,
+		+0.5f, +0.5f, +1.5f, +0.2f, +0.9, +0.0f,
+		+1.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+
+		+1.0f, +0.0f, +1.0f, +0.2f, +0.0, +0.4f,
+		+1.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+
+		+1.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +1.0f, +1.0f, +0.4f, +0.0f, 0.0f,
+
+		+1.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +1.0f, +2.0f, +0.4f, +0.0f, 0.0f,					
+
+		+1.0f, +1.0f, +1.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +1.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+0.0f, +1.0f, +1.0f, +0.4f, +0.0f, 0.0f,
+
+		+1.0f, +1.0f, +1.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +1.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+0.0f, +1.0f, +2.0f, +0.4f, +0.0f, 0.0f,		
+
+		+0.0f, +1.0f, +1.0f, +0.4f, +0.0f, 0.0f,
+		+0.0f, +1.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+0.0f, +0.0f, +1.0f, +0.4f, +0.0f, 0.0f,
+
+		+0.0f, +1.0f, +1.0f, +0.4f, +0.0f, 0.0f,
+		+0.0f, +1.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+0.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+
+		+0.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+0.0f, +0.0f, +1.0f, +0.4f, +0.0f, 0.0f,
+		+0.5f, +0.5f, +1.5f, +0.2f, +0.9, +0.0f,
+
+		+0.5f, +0.5f, +1.5f, +0.2f, +0.9, +0.0f,
+		+0.5f, +0.5f, +2.5f, +0.2f, +0.9, +0.0f,
+		+1.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+
+		+0.5f, +0.5f, +2.5f, +0.2f, +0.9, +0.0f,
+		+1.0f, +0.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +1.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+
+		+0.5f, +0.5f, +1.5f, +0.2f, +0.9, +0.0f,
+		+0.5f, +0.5f, +2.5f, +0.2f, +0.9, +0.0f,
+		+0.0f, +0.0f, +2.0f, +0.2f, +0.9, +0.0f,
+
+		+0.5f, +0.5f, +2.5f, +0.2f, +0.9f, +0.0f,
+		+0.0f, +0.0f, +2.0f, +0.2f, +0.9f, +0.0f,
+		+0.0f, +0.0f, +3.0f, +0.4f, +0.0f, +0.0f,
+
+		+0.5f, +0.5f, +2.5f, +0.2f, +0.9f, +0.0f,	
+		+0.0f, +0.0f, +3.0f, +0.4f, +0.0f, +0.0f,
+		+0.5f, +0.5f, +3.5f, +0.2f, +0.9f, +1.0f,
+
+		+0.0f, +0.0f, +3.0f, +0.4f, +0.0f, +0.0f,
+		+0.5f, +0.5f, +3.5f, +0.2f, +0.9f, +1.0f,
+		+0.0f, +1.0f, +3.0f, +0.1f, +0.0f, +0.0f,	
+
+		+0.0f, +1.0f, +2.0f, +0.1f, +0.0f, +0.0f,
+		+0.0f, +1.0f, +3.0f, +0.1f, +0.0f, +0.0f,
+		+0.0f, +0.0f, +2.0f, +0.4f, +0.0f, +0.0f,
+
+		+0.5f, +0.5f, +2.5f, +0.4f, +0.0f, +0.0f,
+		+1.0f, +1.0f, +2.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +1.0f, +3.0f, +0.4f, +0.0f, 0.0f,
+
+		+0.5f, +0.5f, +2.5f, +0.4f, +0.0f, +0.0f,				
+		+0.5f, +0.5f, +3.5f, +0.4f, +0.0f, +0.0f,
+		+1.0f, +1.0f, +3.0f, +0.4f, +0.0f, 0.0f,
+
+		+0.5f, +0.5f, +3.5f, +0.4f, +0.0f, +0.0f,
+		+1.0f, +1.0f, +3.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +1.0f, +4.0f, +0.4f, +0.0f, 0.0f,
+
+		+0.5f, +0.5f, +4.5f, +0.4f, +0.0f, +0.0f,
+		+1.0f, +1.0f, +4.0f, +0.4f, +0.0f, 0.0f,
+		+1.0f, +1.0f, +5.0f, +0.4f, +0.0f, 0.0f,
+
+		+0.5f, +0.5f, +4.5f, +0.4f, +0.0f, +0.0f,
+		+1.0f, +1.0f, +5.0f, +0.4f, +0.0f, 0.0f,
+		+0.5f, +0.5f, +5.5f, +0.4f, +0.0f, +0.0f,
+
+		+0.5f, +0.5f, +5.5f, +0.4f, +0.0f, +0.0f,
+		+1.0f, +1.0f, +5.0f, +0.4f, +0.0f, 0.0f,
+		+0.0f, +1.0f, +5.0f, +0.4f, +0.0f, 0.0f,
+
+		+0.5f, +0.5f, +5.5f, +0.4f, +1.0f, +0.0f,
+		+0.0f, +1.0f, +5.0f, +0.4f, +0.0f, +0.0f,
+		+0.5f, +0.5f, +4.5f, +0.4f, +1.0f, +0.0f,
+
+		+0.5f, +0.5f, +4.5f, +0.1f, +1.0f, +0.0f,
+		+0.0f, +1.0f, +4.0f, +0.0f, +0.0f, +0.0f,
+		+0.5f, +0.5f, +3.5f, +0.4f, +0.0f, +1.0f,
+
+		+0.5f, +0.5f, +3.5f, +0.3f, +0.0f, +1.0f,
+		+0.0f, +0.0f, +3.0f, +0.2f, +0.0f, +1.0f,
+		+0.0f, +1.0f, +3.0f, +0.9f, +0.0f, +0.0f,		
+
+		+0.0f, +1.0f, +5.0f, +0.3f, +0.0f, +1.0f,
+		+0.0f, +1.0f, +4.0f, +0.2f, +0.0f, +1.0f,
+		+1.0f, +1.0f, +4.0f, +0.9f, +0.0f, +0.0f,
+
+		+0.0f, +1.0f, +4.0f, +0.3f, +0.0f, +1.0f,
+		+0.0f, +1.0f, +3.0f, +0.2f, +0.0f, +1.0f,
+		+1.0f, +1.0f, +3.0f, +0.9f, +0.0f, +0.0f,		
+
+	};
 
 
 
+	glBindVertexArray(VAOs[2]);  //the VAO for point
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(BOChk), BOChk, GL_STATIC_DRAW);
+	//pass the position of the point to openGL
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+	//pass the color of the point to openGL
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (char*)(3 * sizeof(float)));
 
 
 
@@ -324,26 +546,26 @@ void paintGL(void)
 	//render your objects and control the transformation here
 	glClearColor(0.94902f,0.92941f,0.82353f,0.7f); // set the background color
 	glClear(GL_COLOR_BUFFER_BIT);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 
 
 //************************ FIRST OBJECT, some points and coordinate system ********************************
 	glm::mat4 scaleMatrix;
 	scaleMatrix = glm::scale(glm::mat4(1.0f),glm::vec3(scale));
 
-	//glEnable(GL_DEPTH_TEST);
+
 	glm::mat4 worldView;
 	worldView = glm::lookAt(
-		glm::vec3(5 + x_press_num, 3 + y_press_num, -5 + z_press_num), // position of camera in world space
-		glm::vec3(1,1,1), // gaze direction
+		glm::vec3(1 + x_press_num, -5 + y_press_num, 3 + z_press_num), // position of camera in world space
+		glm::vec3(1+lookX,1+lookY,1+lookZ), // gaze direction
 		glm::vec3(0,1,0) ); // No idea yet....
 	glm::mat4 modelTransformMatrix = glm::mat4(1.0f);
 	modelTransformMatrix = glm::translate(glm::mat4(), glm::vec3( 0.0f, 0.0f, 0.0f)); //slightly shifted
 
 	cout << "Camera Position" <<endl;
-	cout << "X: " << 5 + x_press_num << "   Y: " << 3 + y_press_num << "     Z: " << -5 + z_press_num << "  Scale: " << scale << endl;
+	cout << "X: " << 1 + x_press_num << "   Y: " << -5 + y_press_num << "     Z: " << 3 + z_press_num << "  Scale: " << scale << endl;
 
-
+	cout << (double)rand() / (double)RAND_MAX << endl;
 	glm::mat4 projection;
 	projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
 
@@ -355,9 +577,26 @@ void paintGL(void)
 	glDepthFunc(GL_LESS);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+//******************GROUND**************************************************
+	glm::mat4 modelTransformMatrix0 = glm::mat4(1.0f);
+	modelTransformMatrix0 = glm::translate(glm::mat4(), glm::vec3( 0.0f, 0.0f, 0.0f)); 
+
+	glm::mat4 mvp0 = projection * worldView * modelTransformMatrix0 * scaleMatrix;
+	//GLuint MatrixID2 = glGetUniformLocation(programID, "MVP2");
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp0[0][0]);
+
+	glBindVertexArray(VAOs[4]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
+
+//***********************************************************************
+
+
+
 	glBindVertexArray(VAOs[0]);  //the VAO for point
-	//glPointSize(10);
-	glDrawArrays(GL_POINTS, 0, 6); //render primitives from array data
+	glPointSize(10);
+	glDrawArrays(GL_POINTS, 0, 3); //render primitives from array data
 	//NOTICE: one stride has 6 floating point data, so one point's length is 1
 
 	//glLineWidth(5);
@@ -373,8 +612,25 @@ void paintGL(void)
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
 
 	glBindVertexArray(VAOs[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	//glDrawArrays(GL_TRIANGLES, 0, 36);
 
+
+	//************************ THIRD OBJECT, BOCHK ********************************
+	glm::mat4 modelTransformMatrix3 = glm::mat4(1.0f);
+	modelTransformMatrix3 = glm::translate(glm::mat4(), glm::vec3( 1.0f, 1.0f, 0.0f)); //slightly shifted
+
+	glm::mat4 mvp3 = projection * worldView * modelTransformMatrix3 * scaleMatrix;
+	//GLuint MatrixID2 = glGetUniformLocation(programID, "MVP2");
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp3[0][0]);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glLineWidth(5);
+	glBindVertexArray(VAOs[2]);
+	glDrawArrays(GL_TRIANGLES, 0, 108);
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	glLineWidth(1);
+
+	sleep(0.8);
 	glFlush();
 	glutPostRedisplay();
 }
@@ -404,6 +660,8 @@ int main(int argc, char *argv[])
 	/*Enter the GLUT event processing loop which never returns.
 	it will call different registered CALLBACK according
 	to different events. */
+
+
 	glutMainLoop();
 
 	return 0;
