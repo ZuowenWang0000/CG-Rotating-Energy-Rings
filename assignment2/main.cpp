@@ -15,6 +15,7 @@ Student Name: Zuowen Wang
 #include <iostream>
 #include <fstream>
 #include <vector>
+
 using namespace std;
 using glm::vec3;
 using glm::mat4;
@@ -286,10 +287,25 @@ GLuint loadBMP_custom(const char * imagepath) {
 	fread(data, 1, imageSize, file);
 	fclose(file);
 
-	
+
 	GLuint textureID;
 	//TODO: Create one OpenGL texture and set the texture parameter 
-	
+	glGenTextures(1, &textureID);
+
+	// "Bind" the newly created texture : all future texture functions will modify this texture
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	// Give the image to OpenGL
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
+	// OpenGL has now copied the data. Free our own version
+	delete[] data;
+
+	//filter modes
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		GL_LINEAR_MIPMAP_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
 	
 	
 	
@@ -301,6 +317,33 @@ void sendDataToOpenGL()
 	//TODO:
 	//Load objects and bind to VAO & VBO
 	//Load texture
+
+	//TODO don't know if in the templete we should define as double or int yet
+	std::vector<double> vertices;
+	std::vector<double> uvs;
+	std::vector<double> normals;
+
+	//create VAO , one per model
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+
+	//Each VAO corresponds to 3 VBOs.    VBO  UVBO  NBO
+
+	//VBO
+	glGenBuffers(1, &vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+	//UVBO
+	glGenBuffers(1, &uvbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+	//
+
+
+
+
+	//load texture here 
+	GLuint Texture = loadBMP_custom("N:\cprj2748.V6\assignment2\Asg2\sources");
 
 
 }
@@ -347,6 +390,36 @@ void paintGL(void)
 	vec3 lightVectorWorld = normalize(lightPositionWorld - vertexPositionWorld);
 	float brightness = dot(lightVectorWorld, normalize(normalWorld));
 	vec4 diffuseLight = vec4(birghtness, brightness, brightness, 1.0);
+
+
+
+	//send VBOs to vertexShader [one attribute one VBO]
+	//1st attribute buffer: vertices
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glVertexAttribPointer(
+		0, // attribute
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	// TODO for future use
+	int drawSize = vertices.size();
+	glDrawArrays(GL_TRIANGLES, 0, drawSize);
+
+
+	//send texture to shader
+	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
+	glActiveTexture(GL_TEXTURE0);  //active texture unit 0
+	glBindTexture(GL_TEXTURE_2D, Texture);
+
+
+	//&&&&&&&&&&&&&&&&&&&&&&SLIDE T06 PAGE 46&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+	//&&&&&&&&&&&&&&&&&&&&&&SLIDE T06 PAGE 46&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+	//&&&&&&&&&&&&&&&&&&&&&&SLIDE T06 PAGE 46&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
 
 
 
