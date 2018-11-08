@@ -7,6 +7,8 @@ Student ID: 1155123906
 Student Name: Zuowen Wang
 *********************************************************/
 
+//version 23:01   Nov.8
+
 #define _CRT_SECURE_NO_DEPRECATE
 #include "C:\Users\cprj2748\Downloads\Project2\Dependencies\glew\glew.h"
 #include "C:\Users\cprj2748\Downloads\Project2\Dependencies\freeglut\freeglut.h"
