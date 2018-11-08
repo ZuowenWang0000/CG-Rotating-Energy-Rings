@@ -22,17 +22,22 @@ using glm::vec3;
 using glm::mat4;
 using namespace glm;
 
+
+int width = 800;
+int height = 600;
+
 GLint programID;
 // Could define the Vao&Vbo and interaction parameter here
+GLuint vao[3];
 
-GLuint vbo;
-GLuint uvbo;
-GLuint nvbo;
-int drawSize;
+GLuint vbo[3];
+GLuint uvbo[3];
+GLuint nvbo[3];
+int drawSize[3];
 
 
 
-glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 5.0f);
+glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 10.0f);
 glm::vec3 cameraGaze = glm::vec3(0.0f, 0.01f, -0.99f);
 
 float hor = 3.14f;
@@ -41,7 +46,7 @@ float iniFov = 45.0f;
 
 
 
-float scale1 = 4.5f;
+float scale1 = 1.0f;
 
 float x_delta = 0.1f;
 float i_press_num = 0;
@@ -238,32 +243,7 @@ void keyboard(unsigned char key, int x, int y)
 	}
 }
 
-void mouse(int button, int state, int x, int y) {
 
-	if (button == 3) {
-		pitch1 = pitch1 + 2.0f;
-	}
-	if (button == 4) {
-		pitch1 = pitch1 - 2.0f;
-	}
-	if (button == GLUT_LEFT_BUTTON) {
-		yaw1 = yaw1 - 5.0f;
-	}
-	if (button == GLUT_RIGHT_BUTTON) {
-		yaw1 = yaw1 + 5.0f;
-	}
-
-
-	if (pitch1 > 89.0f) { pitch1 = 89.0f; } // to avoid deadlock
-	if (pitch1 < -89.0f) { pitch1 = -89.0f; }
-	glm::vec3 temp = glm::vec3(
-		cos(glm::radians(pitch1)) * cos(glm::radians(yaw1)),
-		sin(glm::radians(pitch1)),
-		sin(glm::radians(yaw1)) * cos(glm::radians(pitch1)));
-
-	cameraGaze = glm::normalize(temp);
-
-}
 
 
 void move(int key, int x, int y)
@@ -274,6 +254,15 @@ void move(int key, int x, int y)
 void PassiveMouse(int x, int y)
 {
 	//TODO: Use Mouse to do interactive events and animation
+	int mouseX;
+	int mouseY;
+
+	mouseX = x;
+	mouseY = y;
+
+	
+
+
 
 }
 
@@ -445,43 +434,116 @@ void sendDataToOpenGL()
 	//TODO:
 	//Load objects and bind to VAO & VBO
 	//Load texture
-
+	glGenVertexArrays(3, vao);
+	glGenBuffers(3, vbo);
+	glGenBuffers(3, uvbo);
+	glGenBuffers(3, nvbo);
 
 
 	////TODO don't know if in the templete we should define as double or int yet
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> normals;
+	std::vector<glm::vec3> vertices0;
+	std::vector<glm::vec2> uvs0;
+	std::vector<glm::vec3> normals0;
 
 	
-	bool obj1 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\plane.obj", vertices, uvs, normals);
+	bool obj1 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\plane.obj", vertices0, uvs0, normals0);
 	
 	//create vetex array object (vao)
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
+	//glGenVertexArrays(1, &vao[0]);
+	glBindVertexArray(vao[0]);
+
+	//send vao of obj0 (plane) to openGL
+	//glGenBuffers(1, &vbo[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, vertices0.size() * sizeof(glm::vec3), &vertices0[0], GL_STATIC_DRAW);
+	//glGenBuffers(1, &uvbo[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, uvs0.size() * sizeof(glm::vec2), &uvs0[0], GL_STATIC_DRAW);
+	//glGenBuffers(1, &nvbo[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, nvbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, normals0.size() * sizeof(glm::vec3), &normals0[0], GL_STATIC_DRAW);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glVertexAttribPointer(
+		0, // attribute
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	drawSize[0] = (int)vertices0.size();
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvbo[0]);
+	glVertexAttribPointer(
+		1, // attribute
+		2, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, nvbo[0]);
+	glVertexAttribPointer(
+		2, // attribute
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	glEnableVertexAttribArray(2);
+
+	glBindVertexArray(0); 
+	//*****************FINISHED SENDING THE FIRST OBJECT (PLANE)***************
+
+
+	////load texture here
+	////GLuint Texture = loadBMP_custom("N:\cprj2748.V6\assignment2\Asg2\sources");
+
+
+	////load and send obj1(jeep)
 
 
 
-	//send vao of obj1 to openGL
-
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
-	glGenBuffers(1, &uvbo);
-	glBindBuffer(GL_ARRAY_BUFFER, uvbo);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-
-	glGenBuffers(1, &nvbo);
-	glBindBuffer(GL_ARRAY_BUFFER, nvbo);
-	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+	//std::vector<glm::vec3> vertices1;
+	//std::vector<glm::vec2> uvs1;
+	//std::vector<glm::vec3> normals1;
 
 
-	drawSize = (int)vertices.size();
+	//bool obj2 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\plane.obj", vertices1, uvs1, normals1);
+	////create vetex array object (vao)
+	//glGenVertexArrays(1, &vao[1]);
+	//glBindVertexArray(vao[1]);
 
-	//load texture here
-	//GLuint Texture = loadBMP_custom("N:\cprj2748.V6\assignment2\Asg2\sources");
+	//glGenBuffers(1, &vbo[1]);
+	//glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	//glBufferData(GL_ARRAY_BUFFER, vertices1.size() * sizeof(glm::vec3), &vertices1[0], GL_STATIC_DRAW);
+
+	//glGenBuffers(1, &uvbo[1]);
+	//glBindBuffer(GL_ARRAY_BUFFER, uvbo[1]);
+	//glBufferData(GL_ARRAY_BUFFER, uvs1.size() * sizeof(glm::vec2), &uvs1[0], GL_STATIC_DRAW);
+
+	//glGenBuffers(1, &nvbo[1]);
+	//glBindBuffer(GL_ARRAY_BUFFER, nvbo[1]);
+	//glBufferData(GL_ARRAY_BUFFER, normals1.size() * sizeof(glm::vec3), &normals1[0], GL_STATIC_DRAW);
+
+	////glEnableVertexAttribArray(0);
+	////glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	////glVertexAttribPointer(
+	////	0, // attribute
+	////	3, // size
+	////	GL_FLOAT, // type
+	////	GL_FALSE, // normalized?
+	////	0, // stride
+	////	(void*)0 // array buffer offset
+	////);
+	//drawSize[1] = (int)vertices0.size();
+
 
 
 }
@@ -490,7 +552,7 @@ void paintGL(void)
 {
 	//*****************TRANSFORMATION MATRIX SECTION**********************
 	glm::mat4 scaleMatrix;
-	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(4.5f));  // the last is scallin coefficience
+	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));  // the last is scallin coefficience
 
 	glm::mat4 worldView;
 	worldView = glm::lookAt(
@@ -502,8 +564,8 @@ void paintGL(void)
 		glm::vec3(0, 1, 0));
 
 	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(75.0f), 800.0f / 800.0f, 0.1f, 100.0f);
-
+	projection = glm::perspective(iniFov, 800.0f / 800.0f, 0.1f, 100.0f);
+	//******************COMMON MATRIX SECTION********************************
 
 	cout << "camera position: " << cameraPosition.x << "," << cameraPosition.y << "," << cameraPosition.z << endl;
 	cout << "gaze: " << cameraGaze.x << "," << cameraGaze.y << "," << cameraGaze.z << endl;
@@ -525,31 +587,23 @@ void paintGL(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	int width = 800;
-	int height = 600;
 	glViewport(0, 0, width, height);
 
-	mat4 fullTransformMatrix;
-	mat4 viewToProjectionMatrix = glm::perspective(60.0f, ((float)width) / height, 0.1f, 20.0f);
-	mat4 worldToViewMatrix = glm::perspective(35.0f, 1.0f, 0.1f, 100.0f);
-	mat4 worldToProjectionMatrix = viewToProjectionMatrix * worldToViewMatrix;
 
-	// ambientLight
-	GLint ambientLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
-	vec3 ambientLight(0.1f, 0.1f, 0.1f);  // RGB light of ambient light
-	glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
+	//// ambientLight
+	//GLint ambientLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
+	//vec3 ambientLight(0.1f, 0.1f, 0.1f);  // RGB light of ambient light
+	//glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
 
-	//eyePosition
-	GLint eyePositionUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
-	vec3 eyePosition(0.0f, 0.0f, 0.0f);
-	glUniform3fv(eyePositionUniformLocation, 1, &eyePosition[0]);
+	////eyePosition
+	//GLint eyePositionUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
+	//vec3 eyePosition(0.0f, 0.0f, 0.0f);
+	//glUniform3fv(eyePositionUniformLocation, 1, &eyePosition[0]);
 
-	//light position world   ... for now it's lightPositionWorld, slide 26
-	GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
-	vec3 lightPositionWorld(2.0f, 15.0f, -10.0f);
-	glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
-
-
+	////light position world   ... for now it's lightPositionWorld, slide 26
+	//GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
+	//vec3 lightPositionWorld(2.0f, 15.0f, -10.0f);
+	//glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
 
 	////diffuse
 	//vec3 lightVectorWorld = normalize(lightPositionWorld - vertexPositionWorld);
@@ -557,26 +611,20 @@ void paintGL(void)
 	//vec4 diffuseLight = vec4(birghtness, brightness, brightness, 1.0);
 
 
+	//****************PAINT FIRST OBJECT PLANE*************
+	glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
+	modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 0.0f));
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glm::mat4 mvp2 = projection * worldView * scaleMatrix * modelTransformMatrix2;
+	//GLuint MatrixID2 = glGetUniformLocation(programID, "MVP2");
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
 
-	////send VBOs to vertexShader [one attribute one VBO]
-	////1st attribute buffer: vertices
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(
-		0, // attribute
-		3, // size
-		GL_FLOAT, // type
-		GL_FALSE, // normalized?
-		0, // stride
-		(void*)0 // array buffer offset
-	);
-
+	glBindVertexArray(vao[0]);
 	glColor3f(0, 0, 1);
 
-	glDrawArrays(GL_TRIANGLES, 0, drawSize);
-
-
-
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[0]);
+	glBindVertexArray(0);
+	//******************************************************
 
 
 
@@ -596,20 +644,20 @@ int main(int argc, char *argv[])
 	glutInit(&argc, argv);
 	glutCreateWindow("Assignment 2");
 
-	glutInitWindowSize(1000, 1000);
+	glutInitWindowSize(width, height);
 	//TODO:
 	/*Register different CALLBACK function for GLUT to response
 	with different events, e.g. window sizing, mouse click or
 	keyboard stroke */
 	initializedGL();
+
+
 	glutDisplayFunc(paintGL);
 
-	//glutKeyboardFunc(keyboard);
-	//glutSpecialFunc(move);
-	//glutPassiveMotionFunc(PassiveMouse);
-
 	glutKeyboardFunc(keyboard);
-	glutMouseFunc(mouse);
+	glutSpecialFunc(move);
+	glutPassiveMotionFunc(PassiveMouse);
+
 
 	glutMainLoop();
 
