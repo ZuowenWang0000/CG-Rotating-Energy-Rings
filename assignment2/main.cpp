@@ -23,8 +23,8 @@ using glm::mat4;
 using namespace glm;
 
 
-int width = 800;
-int height = 600;
+int width = 1200;
+int height = 800;
 
 GLint programID;
 // Could define the Vao&Vbo and interaction parameter here
@@ -37,8 +37,8 @@ int drawSize[3];
 
 
 
-glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 10.0f);
-glm::vec3 cameraGaze = glm::vec3(0.0f, 0.01f, -0.99f);
+glm::vec3 cameraPosition = glm::vec3(5.0f, 10.0f, 25.0f);
+glm::vec3 cameraGaze = glm::vec3(0.0f, 0.01f, -1.0f);
 
 float hor = 3.14f;
 float ver = 0.0f;
@@ -440,7 +440,7 @@ void sendDataToOpenGL()
 	glGenBuffers(3, nvbo);
 
 
-	////TODO don't know if in the templete we should define as double or int yet
+	//@@@@@@@@@@@@@@@@@@@@FIRST OBJECT : PLANE@@@@@@@@@@@@@@@@@@@@@@@
 	std::vector<glm::vec3> vertices0;
 	std::vector<glm::vec2> uvs0;
 	std::vector<glm::vec3> normals0;
@@ -499,52 +499,108 @@ void sendDataToOpenGL()
 	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0); 
-	//*****************FINISHED SENDING THE FIRST OBJECT (PLANE)***************
+	//@@@@@@@@@@@@@@@@@@@@FIRST OBJECT : PLANE@@@@@@@@@@@@@@@@@@@@@@@
 
 
-	////load texture here
-	////GLuint Texture = loadBMP_custom("N:\cprj2748.V6\assignment2\Asg2\sources");
+	//@@@@@@@@@@@@@@@@@@@@SECOND OBJECT : JEEP@@@@@@@@@@@@@@@@@@@@@@@
+	bool obj2 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\jeep.obj", vertices0, uvs0, normals0);
+	//create vetex array object (vao)
+	glBindVertexArray(vao[1]);
 
+	//send vao of obj0 (plane) to openGL
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, vertices0.size() * sizeof(glm::vec3), &vertices0[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, uvs0.size() * sizeof(glm::vec2), &uvs0[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, nvbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, normals0.size() * sizeof(glm::vec3), &normals0[0], GL_STATIC_DRAW);
 
-	////load and send obj1(jeep)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glVertexAttribPointer(
+		0, // attribute
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	drawSize[1] = (int)vertices0.size();
+	glEnableVertexAttribArray(0);
 
+	glBindBuffer(GL_ARRAY_BUFFER, uvbo[1]);
+	glVertexAttribPointer(
+		1, // attribute
+		2, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	glEnableVertexAttribArray(1);
 
+	glBindBuffer(GL_ARRAY_BUFFER, nvbo[1]);
+	glVertexAttribPointer(
+		2, // attribute
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	glEnableVertexAttribArray(2);
 
-	//std::vector<glm::vec3> vertices1;
-	//std::vector<glm::vec2> uvs1;
-	//std::vector<glm::vec3> normals1;
+	glBindVertexArray(0);
+	//@@@@@@@@@@@@@@@@@@@@SECOND OBJECT : JEEP@@@@@@@@@@@@@@@@@@@@@@@
 
+	//@@@@@@@@@@@@@@@@@@@@THIRD OBJECT : BLOCK@@@@@@@@@@@@@@@@@@@@@@@
+	bool obj3 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\block.obj", vertices0, uvs0, normals0);
+	//create vetex array object (vao)
+	glBindVertexArray(vao[2]);
 
-	//bool obj2 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\plane.obj", vertices1, uvs1, normals1);
-	////create vetex array object (vao)
-	//glGenVertexArrays(1, &vao[1]);
-	//glBindVertexArray(vao[1]);
+	//send vao of obj0 (plane) to openGL
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+	glBufferData(GL_ARRAY_BUFFER, vertices0.size() * sizeof(glm::vec3), &vertices0[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbo[2]);
+	glBufferData(GL_ARRAY_BUFFER, uvs0.size() * sizeof(glm::vec2), &uvs0[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, nvbo[2]);
+	glBufferData(GL_ARRAY_BUFFER, normals0.size() * sizeof(glm::vec3), &normals0[0], GL_STATIC_DRAW);
 
-	//glGenBuffers(1, &vbo[1]);
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	//glBufferData(GL_ARRAY_BUFFER, vertices1.size() * sizeof(glm::vec3), &vertices1[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+	glVertexAttribPointer(
+		0, // attribute
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	drawSize[2] = (int)vertices0.size();
+	glEnableVertexAttribArray(0);
 
-	//glGenBuffers(1, &uvbo[1]);
-	//glBindBuffer(GL_ARRAY_BUFFER, uvbo[1]);
-	//glBufferData(GL_ARRAY_BUFFER, uvs1.size() * sizeof(glm::vec2), &uvs1[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbo[2]);
+	glVertexAttribPointer(
+		1, // attribute
+		2, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	glEnableVertexAttribArray(1);
 
-	//glGenBuffers(1, &nvbo[1]);
-	//glBindBuffer(GL_ARRAY_BUFFER, nvbo[1]);
-	//glBufferData(GL_ARRAY_BUFFER, normals1.size() * sizeof(glm::vec3), &normals1[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, nvbo[2]);
+	glVertexAttribPointer(
+		2, // attribute
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+	glEnableVertexAttribArray(2);
 
-	////glEnableVertexAttribArray(0);
-	////glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	////glVertexAttribPointer(
-	////	0, // attribute
-	////	3, // size
-	////	GL_FLOAT, // type
-	////	GL_FALSE, // normalized?
-	////	0, // stride
-	////	(void*)0 // array buffer offset
-	////);
-	//drawSize[1] = (int)vertices0.size();
-
-
+	glBindVertexArray(0);
+	//@@@@@@@@@@@@@@@@@@@@HIRD OBJECT : BLOCK@@@@@@@@@@@@@@@@@@@@@@@
 
 }
 
@@ -552,7 +608,7 @@ void paintGL(void)
 {
 	//*****************TRANSFORMATION MATRIX SECTION**********************
 	glm::mat4 scaleMatrix;
-	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));  // the last is scallin coefficience
+	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));  // the last is scallin coefficience
 
 	glm::mat4 worldView;
 	worldView = glm::lookAt(
@@ -560,7 +616,7 @@ void paintGL(void)
 						//glm::vec3(0+x_press_num+lookX,1+y_press_num +lookY,1+z_press_num+lookZ), // gaze direction
 						//glm::vec3(1,1,1),
 		cameraGaze + cameraPosition,
-		//glm::vec3(1,-5,1),
+
 		glm::vec3(0, 1, 0));
 
 	glm::mat4 projection;
@@ -572,7 +628,7 @@ void paintGL(void)
 
 	glm::mat4 mvp = projection * worldView  * scaleMatrix;
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
+
 	//**************************************************************************
 
 
@@ -612,18 +668,49 @@ void paintGL(void)
 
 
 	//****************PAINT FIRST OBJECT PLANE*************
-	glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
-	modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 0.0f));
+	glm::mat4 modelTransformMatrix0 = glm::mat4(1.0f);
+	modelTransformMatrix0 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -5.0f));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glm::mat4 mvp2 = projection * worldView * scaleMatrix * modelTransformMatrix2;
-	//GLuint MatrixID2 = glGetUniformLocation(programID, "MVP2");
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+	glm::mat4 mvp0 = projection * worldView * scaleMatrix * modelTransformMatrix0;
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp0[0][0]);
 
 	glBindVertexArray(vao[0]);
-	glColor3f(0, 0, 1);
+	glColor3f(1, 0, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[0]);
 	glBindVertexArray(0);
+	//******************************************************
+
+
+	//****************PAINT SECOND OBJECT JEEP*************
+	glm::mat4 modelTransformMatrix1 = glm::mat4(1.0f);
+	modelTransformMatrix1 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glm::mat4 mvp1 = projection * worldView * scaleMatrix * modelTransformMatrix1;
+	//GLuint MatrixID2 = glGetUniformLocation(programID, "MVP2");
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp1[0][0]);
+
+	glBindVertexArray(vao[1]);
+	glColor3f(1, 1, 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[1]);
+	glBindVertexArray(0);
+	////******************************************************
+
+
+	////****************PAINT THIRD OBJECT BLOCK*************
+	//glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
+	//modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glm::mat4 mvp2 = projection * worldView * scaleMatrix * modelTransformMatrix2;
+	////GLuint MatrixID2 = glGetUniformLocation(programID, "MVP2");
+	//glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+
+	//glBindVertexArray(vao[2]);
+	//glColor3f(1, 1, 0);
+
+	//glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
+	//glBindVertexArray(0);
 	//******************************************************
 
 
@@ -650,7 +737,6 @@ int main(int argc, char *argv[])
 	with different events, e.g. window sizing, mouse click or
 	keyboard stroke */
 	initializedGL();
-
 
 	glutDisplayFunc(paintGL);
 
