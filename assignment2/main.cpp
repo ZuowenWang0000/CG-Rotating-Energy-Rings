@@ -613,7 +613,7 @@ void paintGL(void)
 {
 	//*****************TRANSFORMATION MATRIX SECTION**********************
 	glm::mat4 scaleMatrix;
-	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f));  // the last is scallin coefficience
+	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));  // the last is scallin coefficience
 
 	glm::mat4 worldView;
 	worldView = glm::lookAt(
@@ -657,12 +657,12 @@ void paintGL(void)
 
 	// ambientLight
 	GLint ambientLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
-	vec3 ambientLight(0.1f, 0.1f, 0.1f);  // RGB light of ambient light
+	vec3 ambientLight(0.2f, 0.2f, 0.2f);  // RGB light of ambient light
 	glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
 
 	//light position world   ... for now it's lightPositionWorld, slide 26
 	GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
-	vec3 lightPositionWorld(2.0f, 15.0f, -10.0f);
+	vec3 lightPositionWorld(2.0f, 2.0f, 10.0f);
 	glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
 
 	//diffuse
@@ -682,12 +682,13 @@ void paintGL(void)
 		//load and bind texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture[0]);
-		glUniform1i(glGetUniformLocation(programID, "texture0plane"), 0);
+		glUniform1i(glGetUniformLocation(programID, "texture0plane"), 0);
+	/*glColor3f(1, 0, 0);*/
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[0]);
 
 	//disable all buffers
 	glBindVertexArray(-1);
-	//glBindTexture(GL_TEXTURE_2D, -1);
+	glBindTexture(GL_TEXTURE_2D, -1);
 	//******************************************************
 
 
@@ -703,8 +704,12 @@ void paintGL(void)
 	glm::mat4 mvp1 = projection * worldView * scaleMatrix1 * modelTransformMatrix1;
 
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp1[0][0]);
+		//load and bind texture
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture[1]);
+		glUniform1i(glGetUniformLocation(programID, "texture1jeep"), 0);
 
-	glColor3f(1, 0, 0);
+
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[1]);
 	glBindVertexArray(-1);
@@ -723,8 +728,11 @@ void paintGL(void)
 	glm::mat4 mvp2 = projection * worldView * scaleMatrix2 * modelTransformMatrix2;
 
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+		//load and bind texture
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, texture[2]);
+		glUniform1i(glGetUniformLocation(programID, "texture2block"), 0);
 
-	glColor3f(1, 1, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
 	glBindVertexArray(-1);
