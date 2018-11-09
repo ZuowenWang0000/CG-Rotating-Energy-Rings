@@ -7,7 +7,6 @@ Student ID: 1155123906
 Student Name: Zuowen Wang
 *********************************************************/
 
-//version 10:01   Nov.9
 
 #define _CRT_SECURE_NO_DEPRECATE
 #include "C:\Users\cprj2748\Downloads\Project2\Dependencies\glew\glew.h"
@@ -25,8 +24,8 @@ using glm::mat4;
 using namespace glm;
 
 
-int width = 1920;
-int height = 1080;
+int WIDTH = 1920;
+int HEIGHT = 1080;
 
 GLint programID;
 // Could define the Vao&Vbo and interaction parameter here
@@ -36,6 +35,8 @@ GLuint vao[numObj];
 GLuint vbo[numObj];
 GLuint uvbo[numObj];
 GLuint nvbo[numObj];
+GLuint texture[numObj];
+GLuint light[numObj];
 int drawSize[numObj];
 
 
@@ -403,29 +404,33 @@ GLuint loadBMP_custom(const char * imagepath) {
 
 	GLuint textureID;
 	//TODO: Create one OpenGL texture and set the texture parameter
+	//clarification: for this part I simply copie from the tutorial notes
+
 	glGenTextures(1, &textureID);
 
 	// "Bind" the newly created texture : all future texture functions will modify this texture
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	// Give the image to OpenGL
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
-	// OpenGL has now copied the data. Free our own version
-	delete[] data;
+
 
 	//filter modes
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//TODO this part don' understand yet, on some online openGL tutorials it simply use GL_NEAREST,
+	//let me test the difference later
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-
-
+	// OpenGL has now copied the data. Free our own version
+	delete[] data;
 	return textureID;
 }
 
@@ -447,7 +452,7 @@ void sendDataToOpenGL()
 	std::vector<glm::vec2> uvs0;
 	std::vector<glm::vec3> normals0;
 	bool obj1 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\plane.obj", vertices0, uvs0, normals0);
-	
+	texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme1.bmp");
 	glBindVertexArray(vao[0]);
 	//send vao of obj0 (plane) to openGL
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -639,7 +644,7 @@ void paintGL(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	glViewport(0, 0, width, height);
+	glViewport(0, 0, WIDTH, HEIGHT);
 
 
 	//// ambientLight
@@ -664,61 +669,65 @@ void paintGL(void)
 
 
 	//****************PAINT FIRST OBJECT PLANE*************
-	glBindVertexArray(vao[0]);
 	glm::mat4 modelTransformMatrix0 = glm::mat4(1.0f);
 	modelTransformMatrix0 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -5.0f));
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	glm::mat4 mvp0 = projection * worldView * scaleMatrix * modelTransformMatrix0;
 
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp0[0][0]);
-
-
-	glColor3f(1, 0, 0);
+	glBindVertexArray(vao[0]);
+		//load and bind texture
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture[0]);
+		glUniform1i(glGetUniformLocation(programID, "texture0plane"), 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[0]);
+
+	//disable all buffers
 	glBindVertexArray(-1);
+	glBindTexture(GL_TEXTURE_2D, -1);
 	//******************************************************
 
 
 	//****************PAINT SECOND OBJECT JEEP*************
-	glBindVertexArray(vao[1]);
-	glm::mat4 modelTransformMatrix1 = glm::mat4(1.0f);
-	modelTransformMatrix1 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
+	//glBindVertexArray(vao[1]);
+	//glm::mat4 modelTransformMatrix1 = glm::mat4(1.0f);
+	//modelTransformMatrix1 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
 
-	glm::mat4 scaleMatrix1;
-	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f));  // the last is scallin coefficience
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glm::mat4 mvp1 = projection * worldView * scaleMatrix1 * modelTransformMatrix1;
-
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp1[0][0]);
+	//glm::mat4 scaleMatrix1;
+	//scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f));  // the last is scallin coefficience
 
 
-	glColor3f(1, 1, 0);
+	//glm::mat4 mvp1 = projection * worldView * scaleMatrix1 * modelTransformMatrix1;
 
-	glDrawArrays(GL_TRIANGLES, 0, drawSize[1]);
-	glBindVertexArray(-1);
-	////******************************************************
+	//glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp1[0][0]);
 
 
-	////****************PAINT THIRD OBJECT BLOCK*************
-	glBindVertexArray(vao[2]);
-	glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
-	modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
+	////glColor3f(1, 1, 0);
 
-	glm::mat4 scaleMatrix2;
-	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(0.4f));  // the last is scallin coefficience
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glm::mat4 mvp2 = projection * worldView * scaleMatrix2 * modelTransformMatrix2;
-
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+	//glDrawArrays(GL_TRIANGLES, 0, drawSize[1]);
+	//glBindVertexArray(-1);
+	//////******************************************************
 
 
-	glColor3f(1, 1, 0);
+	//////****************PAINT THIRD OBJECT BLOCK*************
+	//glBindVertexArray(vao[2]);
+	//glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
+	//modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
 
-	glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
-	glBindVertexArray(-1);
+	//glm::mat4 scaleMatrix2;
+	//scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(0.4f));  // the last is scallin coefficience
+
+
+	//glm::mat4 mvp2 = projection * worldView * scaleMatrix2 * modelTransformMatrix2;
+
+	//glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+
+
+	////glColor3f(1, 1, 0);
+
+	//glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
+	//glBindVertexArray(-1);
 	//******************************************************
 
 
@@ -737,7 +746,7 @@ void initializedGL(void) //run only once
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
-	glutInitWindowSize(width, height);
+	glutInitWindowSize(WIDTH, HEIGHT);
 	glutCreateWindow("Assignment 2");
 
 
