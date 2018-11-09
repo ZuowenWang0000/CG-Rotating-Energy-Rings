@@ -1,34 +1,19 @@
 #version 430  // GLSL version your computer supports
 
-in layout(location = 0) vec3 position;
-in layout(location = 1) vec3 vertexColor;
-in layout(location = 2) vec3 normal;
+layout(location = 0) in vec3 Position_modelspaceVertex;
+layout(location = 1) in vec2 UVvertex;
+layout(location = 2) in vec3 normalDirec;
 
 
-uniform vec3 ambientLight;
+out vec2 UV;
 
-
-
-uniform mat4 fullTransformMatrix;
-uniform mat4 modelTranformMatrix;
-unifrom mat4 projectionMatrix;
-
-
-out vec3 theColor;
-out vec3 normalWorld;
-out vec3 vertexPositionWorld;
-
-
-
+uniorm mat4 MVP;
 
 void main()
 {
 	vec4 v = vec4(position, 1.0);
-	gl_Position = fullTransformMatrix * v;
-	theColor = vertexColor * ambientLight;	
+	gl_Position = MVP*v;
 
-	vec4 normal_temp = modelTransformMatrix * vec4(normal, 0);
-	normalWorld = normal_temp.xyz;
 
-	vertexPositionWorld = newPosition.xyz;
+	UV = UVvertex;
 }
