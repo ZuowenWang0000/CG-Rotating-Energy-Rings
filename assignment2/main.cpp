@@ -7,6 +7,7 @@ Student ID: 1155123906
 Student Name: Zuowen Wang
 *********************************************************/
 
+//version 23:01   Nov.8
 
 #define _CRT_SECURE_NO_DEPRECATE
 #include "C:\Users\cprj2748\Downloads\Project2\Dependencies\glew\glew.h"
@@ -26,6 +27,8 @@ using namespace glm;
 
 int WIDTH = 1920;
 int HEIGHT = 1080;
+
+float diffBrightness = 1.5f;
 
 GLint programID;
 // Could define the Vao&Vbo and interaction parameter here
@@ -646,26 +649,26 @@ void paintGL(void)
 
 	glViewport(0, 0, WIDTH, HEIGHT);
 
+	//********************* GIVE ME LIGHT! ********************************
+	//eyePosition
+	GLint eyePositionUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
+	vec3 eyePosition(0.0f, 0.0f, 0.0f);
+	glUniform3fv(eyePositionUniformLocation, 1, &eyePosition[0]);
 
-	//// ambientLight
-	//GLint ambientLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
-	//vec3 ambientLight(0.1f, 0.1f, 0.1f);  // RGB light of ambient light
-	//glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
+	// ambientLight
+	GLint ambientLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
+	vec3 ambientLight(0.1f, 0.1f, 0.1f);  // RGB light of ambient light
+	glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
 
-	////eyePosition
-	//GLint eyePositionUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
-	//vec3 eyePosition(0.0f, 0.0f, 0.0f);
-	//glUniform3fv(eyePositionUniformLocation, 1, &eyePosition[0]);
+	//light position world   ... for now it's lightPositionWorld, slide 26
+	GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
+	vec3 lightPositionWorld(2.0f, 15.0f, -10.0f);
+	glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
 
-	////light position world   ... for now it's lightPositionWorld, slide 26
-	//GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
-	//vec3 lightPositionWorld(2.0f, 15.0f, -10.0f);
-	//glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
-
-	////diffuse
-	//vec3 lightVectorWorld = normalize(lightPositionWorld - vertexPositionWorld);
-	//float brightness = dot(lightVectorWorld, normalize(normalWorld));
-	//vec4 diffuseLight = vec4(birghtness, brightness, brightness, 1.0);
+	//diffuse
+	GLuint diffuseLightUniformLocation = glGetUniformLocation(programID, "diffuseLight");
+	vec3 diffuseLightPosition(diffBrightness, diffBrightness, diffBrightness);
+	glUniform3fv(diffuseLightUniformLocation, 1, &diffuseLightPosition[0]);
 
 
 	//****************PAINT FIRST OBJECT PLANE*************
@@ -679,55 +682,52 @@ void paintGL(void)
 		//load and bind texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture[0]);
-		glUniform1i(glGetUniformLocation(programID, "texture0plane"), 0);
-
+		glUniform1i(glGetUniformLocation(programID, "texture0plane"), 0);
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[0]);
 
 	//disable all buffers
 	glBindVertexArray(-1);
-	glBindTexture(GL_TEXTURE_2D, -1);
+	//glBindTexture(GL_TEXTURE_2D, -1);
 	//******************************************************
 
 
 	//****************PAINT SECOND OBJECT JEEP*************
-	//glBindVertexArray(vao[1]);
-	//glm::mat4 modelTransformMatrix1 = glm::mat4(1.0f);
-	//modelTransformMatrix1 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
+	glBindVertexArray(vao[1]);
+	glm::mat4 modelTransformMatrix1 = glm::mat4(1.0f);
+	modelTransformMatrix1 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
 
-	//glm::mat4 scaleMatrix1;
-	//scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f));  // the last is scallin coefficience
-
-
-	//glm::mat4 mvp1 = projection * worldView * scaleMatrix1 * modelTransformMatrix1;
-
-	//glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp1[0][0]);
+	glm::mat4 scaleMatrix1;
+	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f));  // the last is scallin coefficience
 
 
-	////glColor3f(1, 1, 0);
+	glm::mat4 mvp1 = projection * worldView * scaleMatrix1 * modelTransformMatrix1;
 
-	//glDrawArrays(GL_TRIANGLES, 0, drawSize[1]);
-	//glBindVertexArray(-1);
-	//////******************************************************
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp1[0][0]);
 
+	glColor3f(1, 0, 0);
 
-	//////****************PAINT THIRD OBJECT BLOCK*************
-	//glBindVertexArray(vao[2]);
-	//glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
-	//modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
-
-	//glm::mat4 scaleMatrix2;
-	//scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(0.4f));  // the last is scallin coefficience
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[1]);
+	glBindVertexArray(-1);
+	////////******************************************************
 
 
-	//glm::mat4 mvp2 = projection * worldView * scaleMatrix2 * modelTransformMatrix2;
+	////////****************PAINT THIRD OBJECT BLOCK*************
+	glBindVertexArray(vao[2]);
+	glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
+	modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
 
-	//glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+	glm::mat4 scaleMatrix2;
+	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(0.4f));  // the last is scallin coefficience
 
 
-	////glColor3f(1, 1, 0);
+	glm::mat4 mvp2 = projection * worldView * scaleMatrix2 * modelTransformMatrix2;
 
-	//glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
-	//glBindVertexArray(-1);
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+
+	glColor3f(1, 1, 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
+	glBindVertexArray(-1);
 	//******************************************************
 
 
@@ -746,6 +746,7 @@ void initializedGL(void) //run only once
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
 	glutInitWindowSize(WIDTH, HEIGHT);
 	glutCreateWindow("Assignment 2");
 
