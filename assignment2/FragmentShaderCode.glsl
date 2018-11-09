@@ -19,8 +19,6 @@ void main()
 	float brightness = dot(lightVectorWorld, normalize(normalWorld));
 	vec3 diffuseLight = vec3(brightness, brightness, brightness);
 
-
-
 	//specular light
 	//vec3 reflectedLightVectorWorld = reflect(-lightVectorWorld, normalWorld);
 	//vec3 eyeVectorWorld = normalize(eyePositionWorld - vertexPositionWorld);
@@ -28,7 +26,7 @@ void main()
 	//s = pow(s, 5);
 	//vec4 specularLight = vec4(s, 0, 0, 1);
 
-	daColor = vec4((texture(texture0, UV).rgb)*(ambientLight + clamp(diffuseLight, 0, 1)), 1.0);
+	daColor = vec4((texture(texture0, UV).rgb)*(ambientLight + diffuseLight), 1.0);
 	//daColor = vec4(texture(texture0, UV).rgb * ambientLight, 1.0);
 
 }

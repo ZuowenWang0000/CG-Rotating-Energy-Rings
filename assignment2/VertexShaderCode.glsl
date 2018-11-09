@@ -20,12 +20,11 @@ void main()
 	vec4 projectedPosition = projectionMatrix * newPosition;
 
 	//calculate world coordinate of vertex and normal
-	vec4 normal_temp = modelTransformMatrix * vec4(normal, 0);
+	vec4 normal_temp = modelTransformMatrix * vec4(vertexNormal, 0);
 	normalWorld = normal_temp.xyz;
 	vertexPositionWorld = newPosition.xyz;
 
-
-	gl_Position = MVP*v;
+	gl_Position = projectionMatrix*modelTransformMatrix*v;
 	UV = vertexUV;
 
 }
