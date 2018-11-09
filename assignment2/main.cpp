@@ -19,6 +19,8 @@ Student Name: Zuowen Wang
 #include <fstream>
 #include <vector>
 
+GLuint loadBMP_custom(const char * imagepath);
+
 using namespace std;
 using glm::vec3;
 using glm::mat4;
@@ -38,13 +40,13 @@ GLuint vao[numObj];
 GLuint vbo[numObj];
 GLuint uvbo[numObj];
 GLuint nvbo[numObj];
-GLuint texture[numObj];
-GLuint light[numObj];
+GLint texture[numObj];
+GLint light[numObj];
 int drawSize[numObj];
 
 
 
-glm::vec3 cameraPosition = glm::vec3(1.5f, 9.945f, 30.5f);
+glm::vec3 cameraPosition = glm::vec3(1.5f, 9.945f, 40.5f);
 glm::vec3 cameraGaze = glm::vec3(0.0f, 0.01f, -1.0f);
 
 float hor = 3.14f;
@@ -67,7 +69,7 @@ double lookY = 0;
 double lookZ = 0;
 double rot = 0;
 
-float scale = 4.5;
+float scale = 4.5f;
 
 GLfloat pitch1 = 22.0f;
 GLfloat yaw1 = -90.0f;
@@ -248,6 +250,16 @@ void keyboard(unsigned char key, int x, int y)
 	if (key == 'l') {
 		l_press_num = l_press_num + 0.5;
 	}
+
+	if (key == '1') {
+		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme1.bmp");
+	}
+	if (key == '2') {
+		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme2.bmp");
+	}
+	if (key == '3') {
+		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme3.bmp");
+	}
 }
 
 
@@ -415,22 +427,14 @@ GLuint loadBMP_custom(const char * imagepath) {
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	// Give the image to OpenGL
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
-
-
-	//filter modes
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	//TODO this part don' understand yet, on some online openGL tutorials it simply use GL_NEAREST,
-	//let me test the difference later
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
 	glGenerateMipmap(GL_TEXTURE_2D);
+
+
 
 	// OpenGL has now copied the data. Free our own version
 	delete[] data;
@@ -455,7 +459,7 @@ void sendDataToOpenGL()
 	std::vector<glm::vec2> uvs0;
 	std::vector<glm::vec3> normals0;
 	bool obj1 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\plane.obj", vertices0, uvs0, normals0);
-	texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme1.bmp");
+	texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme2.bmp"); //default plane texture
 	glBindVertexArray(vao[0]);
 	//send vao of obj0 (plane) to openGL
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -509,6 +513,7 @@ void sendDataToOpenGL()
 	std::vector<glm::vec2> uvs1;
 	std::vector<glm::vec3> normals1;
 	bool obj2 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\jeep.obj", vertices1, uvs1, normals1);
+	texture[1] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\jeep_texture.bmp");
 	glBindVertexArray(vao[1]);
 
 	//send vao of obj0 (plane) to openGL
@@ -561,6 +566,7 @@ void sendDataToOpenGL()
 	std::vector<glm::vec2> uvs2;
 	std::vector<glm::vec3> normals2;
 	bool obj3 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\block.obj", vertices2, uvs2, normals2);
+	texture[2] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\block_texture.bmp");
 	glBindVertexArray(vao[2]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
@@ -611,6 +617,31 @@ void sendDataToOpenGL()
 
 void paintGL(void)
 {
+	////*****************TRANSFORMATION MATRIX SECTION**********************
+	//glm::mat4 scaleMatrix;
+	//scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));  // the last is scallin coefficience
+
+	//glm::mat4 worldView;
+	//worldView = glm::lookAt(
+	//	cameraPosition, // position of camera in world space
+	//					//glm::vec3(0+x_press_num+lookX,1+y_press_num +lookY,1+z_press_num+lookZ), // gaze direction
+	//					//glm::vec3(1,1,1),
+	//	cameraGaze + cameraPosition,
+
+	//	glm::vec3(0, 1, 0));
+
+	//glm::mat4 projectionMatrix;
+	//projection = glm::perspective(iniFov, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+	////******************COMMON MATRIX SECTION********************************
+
+	//cout << "camera position: " << cameraPosition.x << "," << cameraPosition.y << "," << cameraPosition.z << endl;
+	//cout << "gaze: " << cameraGaze.x << "," << cameraGaze.y << "," << cameraGaze.z << endl;
+
+	//glm::mat4 mvp = projection * worldView  * scaleMatrix;
+	//GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+
+	////**************************************************************************
+
 	//*****************TRANSFORMATION MATRIX SECTION**********************
 	glm::mat4 scaleMatrix;
 	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));  // the last is scallin coefficience
@@ -624,20 +655,29 @@ void paintGL(void)
 
 		glm::vec3(0, 1, 0));
 
-	glm::mat4 projection;
-	projection = glm::perspective(iniFov, 800.0f / 800.0f, 0.1f, 100.0f);
+	glm::mat4 projectionMatrix;
+	projectionMatrix = glm::perspective(iniFov, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 	//******************COMMON MATRIX SECTION********************************
 
 	cout << "camera position: " << cameraPosition.x << "," << cameraPosition.y << "," << cameraPosition.z << endl;
 	cout << "gaze: " << cameraGaze.x << "," << cameraGaze.y << "," << cameraGaze.z << endl;
 
-	glm::mat4 mvp = projection * worldView  * scaleMatrix;
+	glm::mat4 modelTransformMatrix;
+	modelTransformMatrix = worldView * scaleMatrix;
+
+	GLuint model = glGetUniformLocation(programID, "modelTransformMatrix");
+	glUniformMatrix4fv(model, 1, GL_FALSE, &modelTransformMatrix[0][0]);
+
+	GLuint proj = glGetUniformLocation(programID, "projectionMatrix");
+	glUniformMatrix4fv(proj, 1, GL_FALSE, &projectionMatrix[0][0]);
+	
+	glm::mat4 mvp = projectionMatrix * worldView  * scaleMatrix;
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
 	//**************************************************************************
 
 
-	glClearColor(0.94902f, 0.92941f, 0.82353f, 0.7f); // set the background color
+	glClearColor(0.1f, 0.1f, 0.13f, 0.9f); // set the background color
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	//TODO:
@@ -662,7 +702,7 @@ void paintGL(void)
 
 	//light position world   ... for now it's lightPositionWorld, slide 26
 	GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
-	vec3 lightPositionWorld(2.0f, 2.0f, 10.0f);
+	vec3 lightPositionWorld(2.0f, 2.0f, 20.0f);
 	glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
 
 	//diffuse
@@ -670,20 +710,28 @@ void paintGL(void)
 	vec3 diffuseLightPosition(diffBrightness, diffBrightness, diffBrightness);
 	glUniform3fv(diffuseLightUniformLocation, 1, &diffuseLightPosition[0]);
 
+	//specular light
+
+
 
 	//****************PAINT FIRST OBJECT PLANE*************
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
+
 	glm::mat4 modelTransformMatrix0 = glm::mat4(1.0f);
 	modelTransformMatrix0 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -5.0f));
 
-	glm::mat4 mvp0 = projection * worldView * scaleMatrix * modelTransformMatrix0;
+	glm::mat4 scaleMatrix0;
+	scaleMatrix0 = glm::scale(glm::mat4(2.0f), glm::vec3(3.0f));  // the last is scallin coefficience
+
+	glm::mat4 mvp0 = projectionMatrix * worldView * scaleMatrix0 * modelTransformMatrix0;
 
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp0[0][0]);
 	glBindVertexArray(vao[0]);
 		//load and bind texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture[0]);
-		glUniform1i(glGetUniformLocation(programID, "texture0plane"), 0);
-	/*glColor3f(1, 0, 0);*/
+
+
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[0]);
 
 	//disable all buffers
@@ -698,21 +746,20 @@ void paintGL(void)
 	modelTransformMatrix1 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
 
 	glm::mat4 scaleMatrix1;
-	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f));  // the last is scallin coefficience
+	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(1.3f));  // the last is scallin coefficience
 
 
-	glm::mat4 mvp1 = projection * worldView * scaleMatrix1 * modelTransformMatrix1;
+	glm::mat4 mvp1 = projectionMatrix * worldView * scaleMatrix1 * modelTransformMatrix1;
 
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp1[0][0]);
 		//load and bind texture
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture[1]);
-		glUniform1i(glGetUniformLocation(programID, "texture1jeep"), 0);
-
-
+		glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[1]);
 	glBindVertexArray(-1);
+	glBindTexture(GL_TEXTURE_2D, -1);
 	////////******************************************************
 
 
@@ -722,20 +769,21 @@ void paintGL(void)
 	modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
 
 	glm::mat4 scaleMatrix2;
-	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(0.4f));  // the last is scallin coefficience
+	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(1.4f));  // the last is scallin coefficience
 
 
-	glm::mat4 mvp2 = projection * worldView * scaleMatrix2 * modelTransformMatrix2;
+	glm::mat4 mvp2 = projectionMatrix * worldView * scaleMatrix2 * modelTransformMatrix2;
 
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
 		//load and bind texture
-		glActiveTexture(GL_TEXTURE2);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture[2]);
-		glUniform1i(glGetUniformLocation(programID, "texture2block"), 0);
+		glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
 
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
 	glBindVertexArray(-1);
+	glBindTexture(GL_TEXTURE_2D, -1);
 	//******************************************************
 
 
