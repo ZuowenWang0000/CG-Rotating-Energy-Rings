@@ -7,7 +7,7 @@ Student ID: 1155123906
 Student Name: Zuowen Wang
 *********************************************************/
 
-//version 23:01   Nov.8
+//version 10:01   Nov.9
 
 #define _CRT_SECURE_NO_DEPRECATE
 #include "C:\Users\cprj2748\Downloads\Project2\Dependencies\glew\glew.h"
@@ -25,21 +25,22 @@ using glm::mat4;
 using namespace glm;
 
 
-int width = 1200;
-int height = 800;
+int width = 1920;
+int height = 1080;
 
 GLint programID;
 // Could define the Vao&Vbo and interaction parameter here
-GLuint vao[3];
+const int numObj = 3;
+GLuint vao[numObj];
 
-GLuint vbo[3];
-GLuint uvbo[3];
-GLuint nvbo[3];
-int drawSize[3];
+GLuint vbo[numObj];
+GLuint uvbo[numObj];
+GLuint nvbo[numObj];
+int drawSize[numObj];
 
 
 
-glm::vec3 cameraPosition = glm::vec3(5.0f, 10.0f, 25.0f);
+glm::vec3 cameraPosition = glm::vec3(1.5f, 9.945f, 30.5f);
 glm::vec3 cameraGaze = glm::vec3(0.0f, 0.01f, -1.0f);
 
 float hor = 3.14f;
@@ -430,38 +431,29 @@ GLuint loadBMP_custom(const char * imagepath) {
 
 void sendDataToOpenGL()
 {
-	//create point, line, 2D object and 3D object here and bind to VAOs & VBOs
-	//create VAOs VBOs 
 
-	//TODO:
-	//Load objects and bind to VAO & VBO
-	//Load texture
-	glGenVertexArrays(3, vao);
-	glGenBuffers(3, vbo);
-	glGenBuffers(3, uvbo);
-	glGenBuffers(3, nvbo);
+	//TODO load texture
 
+	//To create vao buffers and 3 vbo buffers for each object. 3 indicates we have 3 objects for now.
+	glGenVertexArrays(numObj, vao);
+	glGenBuffers(numObj, vbo);
+	glGenBuffers(numObj, uvbo);
+	glGenBuffers(numObj, nvbo);
 
-	//@@@@@@@@@@@@@@@@@@@@FIRST OBJECT : PLANE@@@@@@@@@@@@@@@@@@@@@@@
+	//these are template to pass information from loadObj to those buffers, should NOT be reused among diferent objects
+
+	//@@@@@@@@@@@@@@@@@@@@FIRST OBJECT : PLANE@@@@@@@@@@@@@@@@@@@@@@@	
 	std::vector<glm::vec3> vertices0;
 	std::vector<glm::vec2> uvs0;
 	std::vector<glm::vec3> normals0;
-
-	
 	bool obj1 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\plane.obj", vertices0, uvs0, normals0);
 	
-	//create vetex array object (vao)
-	//glGenVertexArrays(1, &vao[0]);
 	glBindVertexArray(vao[0]);
-
 	//send vao of obj0 (plane) to openGL
-	//glGenBuffers(1, &vbo[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, vertices0.size() * sizeof(glm::vec3), &vertices0[0], GL_STATIC_DRAW);
-	//glGenBuffers(1, &uvbo[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, uvbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, uvs0.size() * sizeof(glm::vec2), &uvs0[0], GL_STATIC_DRAW);
-	//glGenBuffers(1, &nvbo[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, nvbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, normals0.size() * sizeof(glm::vec3), &normals0[0], GL_STATIC_DRAW);
 
@@ -500,22 +492,24 @@ void sendDataToOpenGL()
 	);
 	glEnableVertexAttribArray(2);
 
-	glBindVertexArray(0); 
+	glBindVertexArray(-1); 
 	//@@@@@@@@@@@@@@@@@@@@FIRST OBJECT : PLANE@@@@@@@@@@@@@@@@@@@@@@@
 
 
 	//@@@@@@@@@@@@@@@@@@@@SECOND OBJECT : JEEP@@@@@@@@@@@@@@@@@@@@@@@
-	bool obj2 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\jeep.obj", vertices0, uvs0, normals0);
-	//create vetex array object (vao)
+	std::vector<glm::vec3> vertices1;
+	std::vector<glm::vec2> uvs1;
+	std::vector<glm::vec3> normals1;
+	bool obj2 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\jeep.obj", vertices1, uvs1, normals1);
 	glBindVertexArray(vao[1]);
 
 	//send vao of obj0 (plane) to openGL
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, vertices0.size() * sizeof(glm::vec3), &vertices0[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices1.size() * sizeof(glm::vec3), &vertices1[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, uvbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, uvs0.size() * sizeof(glm::vec2), &uvs0[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, uvs1.size() * sizeof(glm::vec2), &uvs1[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, nvbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, normals0.size() * sizeof(glm::vec3), &normals0[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, normals1.size() * sizeof(glm::vec3), &normals1[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 	glVertexAttribPointer(
@@ -526,7 +520,7 @@ void sendDataToOpenGL()
 		0, // stride
 		(void*)0 // array buffer offset
 	);
-	drawSize[1] = (int)vertices0.size();
+	drawSize[1] = (int)vertices1.size();
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, uvbo[1]);
@@ -551,21 +545,22 @@ void sendDataToOpenGL()
 	);
 	glEnableVertexAttribArray(2);
 
-	glBindVertexArray(0);
+	glBindVertexArray(-1);
 	//@@@@@@@@@@@@@@@@@@@@SECOND OBJECT : JEEP@@@@@@@@@@@@@@@@@@@@@@@
 
 	//@@@@@@@@@@@@@@@@@@@@THIRD OBJECT : BLOCK@@@@@@@@@@@@@@@@@@@@@@@
-	bool obj3 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\block.obj", vertices0, uvs0, normals0);
-	//create vetex array object (vao)
+	std::vector<glm::vec3> vertices2;
+	std::vector<glm::vec2> uvs2;
+	std::vector<glm::vec3> normals2;
+	bool obj3 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\block.obj", vertices2, uvs2, normals2);
 	glBindVertexArray(vao[2]);
 
-	//send vao of obj0 (plane) to openGL
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-	glBufferData(GL_ARRAY_BUFFER, vertices0.size() * sizeof(glm::vec3), &vertices0[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices2.size() * sizeof(glm::vec3), &vertices2[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, uvbo[2]);
-	glBufferData(GL_ARRAY_BUFFER, uvs0.size() * sizeof(glm::vec2), &uvs0[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, uvs2.size() * sizeof(glm::vec2), &uvs2[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, nvbo[2]);
-	glBufferData(GL_ARRAY_BUFFER, normals0.size() * sizeof(glm::vec3), &normals0[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, normals2.size() * sizeof(glm::vec3), &normals2[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
 	glVertexAttribPointer(
@@ -576,7 +571,7 @@ void sendDataToOpenGL()
 		0, // stride
 		(void*)0 // array buffer offset
 	);
-	drawSize[2] = (int)vertices0.size();
+	drawSize[2] = (int)vertices2.size();
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, uvbo[2]);
@@ -601,7 +596,7 @@ void sendDataToOpenGL()
 	);
 	glEnableVertexAttribArray(2);
 
-	glBindVertexArray(0);
+	glBindVertexArray(-1);
 	//@@@@@@@@@@@@@@@@@@@@HIRD OBJECT : BLOCK@@@@@@@@@@@@@@@@@@@@@@@
 
 }
@@ -635,7 +630,6 @@ void paintGL(void)
 
 
 	glClearColor(0.94902f, 0.92941f, 0.82353f, 0.7f); // set the background color
-	glClear(GL_COLOR_BUFFER_BIT);
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	//TODO:
@@ -670,49 +664,61 @@ void paintGL(void)
 
 
 	//****************PAINT FIRST OBJECT PLANE*************
+	glBindVertexArray(vao[0]);
 	glm::mat4 modelTransformMatrix0 = glm::mat4(1.0f);
 	modelTransformMatrix0 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -5.0f));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glm::mat4 mvp0 = projection * worldView * scaleMatrix * modelTransformMatrix0;
+
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp0[0][0]);
 
-	glBindVertexArray(vao[0]);
+
 	glColor3f(1, 0, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[0]);
-	glBindVertexArray(0);
+	glBindVertexArray(-1);
 	//******************************************************
 
 
 	//****************PAINT SECOND OBJECT JEEP*************
+	glBindVertexArray(vao[1]);
 	glm::mat4 modelTransformMatrix1 = glm::mat4(1.0f);
 	modelTransformMatrix1 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
+
+	glm::mat4 scaleMatrix1;
+	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(0.3f));  // the last is scallin coefficience
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glm::mat4 mvp1 = projection * worldView * scaleMatrix * modelTransformMatrix1;
-	//GLuint MatrixID2 = glGetUniformLocation(programID, "MVP2");
+	glm::mat4 mvp1 = projection * worldView * scaleMatrix1 * modelTransformMatrix1;
+
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp1[0][0]);
 
-	glBindVertexArray(vao[1]);
+
 	glColor3f(1, 1, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[1]);
-	glBindVertexArray(0);
+	glBindVertexArray(-1);
 	////******************************************************
 
 
 	////****************PAINT THIRD OBJECT BLOCK*************
-	//glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
-	//modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//glm::mat4 mvp2 = projection * worldView * scaleMatrix * modelTransformMatrix2;
-	////GLuint MatrixID2 = glGetUniformLocation(programID, "MVP2");
-	//glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+	glBindVertexArray(vao[2]);
+	glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
+	modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
 
-	//glBindVertexArray(vao[2]);
-	//glColor3f(1, 1, 0);
+	glm::mat4 scaleMatrix2;
+	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(0.4f));  // the last is scallin coefficience
 
-	//glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
-	//glBindVertexArray(0);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glm::mat4 mvp2 = projection * worldView * scaleMatrix2 * modelTransformMatrix2;
+
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+
+
+	glColor3f(1, 1, 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
+	glBindVertexArray(-1);
 	//******************************************************
 
 
@@ -731,9 +737,10 @@ void initializedGL(void) //run only once
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
+	glutInitWindowSize(width, height);
 	glutCreateWindow("Assignment 2");
 
-	glutInitWindowSize(width, height);
+
 	//TODO:
 	/*Register different CALLBACK function for GLUT to response
 	with different events, e.g. window sizing, mouse click or
