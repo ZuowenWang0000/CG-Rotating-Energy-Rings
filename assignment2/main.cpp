@@ -692,12 +692,12 @@ void paintGL(void)
 	//********************* GIVE ME LIGHT! ********************************
 	//eyePosition
 	GLint eyePositionUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
-	vec3 eyePosition(0.0f, 0.0f, 0.0f);
+	vec3 eyePosition(1.0f, 1.0f, 5.0f);
 	glUniform3fv(eyePositionUniformLocation, 1, &eyePosition[0]);
 
 	// ambientLight
 	GLint ambientLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
-	vec3 ambientLight(0.2f, 0.2f, 0.2f);  // RGB light of ambient light
+	vec3 ambientLight(0.35f, 0.35f, 0.35f);  // RGB light of ambient light
 	glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
 
 	//light position world   ... for now it's lightPositionWorld, slide 26
