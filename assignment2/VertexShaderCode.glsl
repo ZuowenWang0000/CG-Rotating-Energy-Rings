@@ -1,7 +1,7 @@
 #version 430  // GLSL version your computer supports
 
 in layout(location = 0) vec3 position;  //vbo
-in layout(location = 1) vec2 vertexUV;  //uvbo
+in layout(location = 1) vec2 vertexUV;  //uvbo -- uv is being used to calculate texture, which is equivalent to color calculation
 in layout(location = 2) vec3 vertexNormal; //nvbo
 
 uniform mat4 model;
