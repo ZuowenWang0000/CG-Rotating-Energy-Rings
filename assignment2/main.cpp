@@ -30,7 +30,7 @@ using namespace glm;
 int WIDTH = 1920;
 int HEIGHT = 1080;
 
-float diffBrightness = 1.5f;
+//float diffBrightness = 1.5f;
 
 GLint programID;
 // Could define the Vao&Vbo and interaction parameter here
@@ -44,7 +44,10 @@ GLint texture[numObj];
 GLint light[numObj];
 int drawSize[numObj];
 
+float diffAdjust = 0.0;
+float ambAdjust = 0.0;
 
+float specularStrength = 0.5;
 
 glm::vec3 cameraPosition = glm::vec3(1.5f, 9.945f, 40.5f);
 glm::vec3 cameraGaze = glm::vec3(0.0f, 0.01f, -1.0f);
@@ -187,53 +190,7 @@ void installShaders()
 
 void keyboard(unsigned char key, int x, int y)
 {
-	// //Define 6 camera position operations here:
-	//X axel
-	// w -> forwards
-	// s -> backwards
-	if (key == 'a')
-	{
-		cameraPosition -= 0.5f *glm::normalize(glm::cross(cameraGaze, glm::vec3(0, 1, 0)));
-	}
-	if (key == 'd')
-	{
-		cameraPosition += 0.5f *glm::normalize(glm::cross(cameraGaze, glm::vec3(0, 1, 0)));
-	}
 
-	//Y axel
-	// a -> leftwards
-	// d -> rightwards
-	if (key == 's')
-	{
-		cameraPosition -= 0.5f * cameraGaze;
-	}
-	if (key == 'w')
-	{
-		cameraPosition += 0.5f *cameraGaze;
-	}
-	//Z axel
-	// q -> upwards
-	// e -> downwards
-	if (key == 'e')
-	{
-		cameraPosition -= 0.5f *glm::vec3(0.0f, 0.0f, 1.0f);
-	}
-	if (key == 'q')
-	{
-		cameraPosition += 0.5f *glm::vec3(0.0f, 0.0f, 1.0f);
-	}
-
-	// // and 2 angle operations:
-	// z-> camera angle up 
-	// x -> camera angle down
-	if (key == '+')
-	{
-		scale1 += 0.5;
-	}
-	if (key == '-')
-	{
-		scale1 -= 0.5;
-	}
 
 	if (key == 'r') {
 		rot = rot + 3;
@@ -259,6 +216,19 @@ void keyboard(unsigned char key, int x, int y)
 	}
 	if (key == '3') {
 		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme3.bmp");
+	}
+	//control the diffuse intensity 
+	if (key == 'q') {
+		diffAdjust = diffAdjust + 0.05f;
+	}
+	if (key == 'w') {
+		diffAdjust = diffAdjust - 0.05f;
+	}
+	if (key == '+') {
+		ambAdjust += 0.05;
+	}
+	if (key == '-') {
+		ambAdjust -= 0.05;
 	}
 }
 
@@ -427,7 +397,8 @@ GLuint loadBMP_custom(const char * imagepath) {
 	glBindTexture(GL_TEXTURE_2D, textureID);
 	// Give the image to OpenGL
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -643,36 +614,32 @@ void paintGL(void)
 	////**************************************************************************
 
 	//*****************TRANSFORMATION MATRIX SECTION**********************
-	glm::mat4 scaleMatrix;
-	scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));  // the last is scallin coefficience
+	//different objects have different model matrix
+	glm::mat4 model;   //for rotation
+	glm::mat4 view;    //for translation
+	glm::mat4 projection;
 
-	glm::mat4 worldView;
-	worldView = glm::lookAt(
+	//this look at matrix is for common use
+	view = glm::lookAt(
 		cameraPosition, // position of camera in world space
 						//glm::vec3(0+x_press_num+lookX,1+y_press_num +lookY,1+z_press_num+lookZ), // gaze direction
 						//glm::vec3(1,1,1),
 		cameraGaze + cameraPosition,
-
 		glm::vec3(0, 1, 0));
 
-	glm::mat4 projectionMatrix;
-	projectionMatrix = glm::perspective(iniFov, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+	//this projection matrix is for commomn use
+	projection = glm::perspective(iniFov, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 	//******************COMMON MATRIX SECTION********************************
 
 	cout << "camera position: " << cameraPosition.x << "," << cameraPosition.y << "," << cameraPosition.z << endl;
 	cout << "gaze: " << cameraGaze.x << "," << cameraGaze.y << "," << cameraGaze.z << endl;
 
-	glm::mat4 modelTransformMatrix;
-	modelTransformMatrix = worldView * scaleMatrix;
 
-	GLuint model = glGetUniformLocation(programID, "modelTransformMatrix");
-	glUniformMatrix4fv(model, 1, GL_FALSE, &modelTransformMatrix[0][0]);
 
-	GLuint proj = glGetUniformLocation(programID, "projectionMatrix");
-	glUniformMatrix4fv(proj, 1, GL_FALSE, &projectionMatrix[0][0]);
-	
-	glm::mat4 mvp = projectionMatrix * worldView  * scaleMatrix;
-	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+	GLuint modelUniformLocation = glGetUniformLocation(programID, "model");
+	GLuint viewUniformLocation = glGetUniformLocation(programID, "view");
+	GLuint projectionUniformLocation = glGetUniformLocation(programID, "projection");
+	GLuint mvpUniformLocation = glGetUniformLocation(programID, "MVP");
 
 	//**************************************************************************
 
@@ -689,48 +656,26 @@ void paintGL(void)
 
 	glViewport(0, 0, WIDTH, HEIGHT);
 
-	//********************* GIVE ME LIGHT! ********************************
-	//eyePosition
-	GLint eyePositionUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
-	vec3 eyePosition(1.0f, 1.0f, 5.0f);
-	glUniform3fv(eyePositionUniformLocation, 1, &eyePosition[0]);
-
-	// ambientLight
-	GLint ambientLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
-	vec3 ambientLight(0.35f, 0.35f, 0.35f);  // RGB light of ambient light
-	glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
-
-	//light position world   ... for now it's lightPositionWorld, slide 26
-	GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
-	vec3 lightPositionWorld(2.0f, 2.0f, 20.0f);
-	glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
-
-	//diffuse
-	GLuint diffuseLightUniformLocation = glGetUniformLocation(programID, "diffuseLight");
-	vec3 diffuseLightPosition(diffBrightness, diffBrightness, diffBrightness);
-	glUniform3fv(diffuseLightUniformLocation, 1, &diffuseLightPosition[0]);
-
-	//specular light
-
-
 
 	//****************PAINT FIRST OBJECT PLANE*************
+	glBindVertexArray(vao[0]);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
 
-	glm::mat4 modelTransformMatrix0 = glm::mat4(1.0f);
-	modelTransformMatrix0 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -5.0f));
+
+	model = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -5.0f));
 
 	glm::mat4 scaleMatrix0;
 	scaleMatrix0 = glm::scale(glm::mat4(2.0f), glm::vec3(3.0f));  // the last is scallin coefficience
+	model = model * scaleMatrix0;  //model for this object cosist of one translation and scalling
 
-	glm::mat4 mvp0 = projectionMatrix * worldView * scaleMatrix0 * modelTransformMatrix0;
+	glm::mat4 mvp0 = projection * view * model;
 
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp0[0][0]);
-	glBindVertexArray(vao[0]);
-		//load and bind texture
-
+	glUniformMatrix4fv(mvpUniformLocation, 1, GL_FALSE, &mvp0[0][0]);
+	glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(viewUniformLocation, 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE, &projection[0][0]);
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[0]);
 
@@ -742,20 +687,27 @@ void paintGL(void)
 
 	//****************PAINT SECOND OBJECT JEEP*************
 	glBindVertexArray(vao[1]);
-	glm::mat4 modelTransformMatrix1 = glm::mat4(1.0f);
-	modelTransformMatrix1 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
+	glm::mat4 modeltranslation = glm::mat4(1.0f);
+	modeltranslation = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
 
 	glm::mat4 scaleMatrix1;
 	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(1.3f));  // the last is scallin coefficience
 
+	model = scaleMatrix1 * modeltranslation;
 
-	glm::mat4 mvp1 = projectionMatrix * worldView * scaleMatrix1 * modelTransformMatrix1;
+	glm::mat4 mvp1 = projection * view * model;
 
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp1[0][0]);
+
 		//load and bind texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture[1]);
 		glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
+
+
+	glUniformMatrix4fv(mvpUniformLocation, 1, GL_FALSE, &mvp1[0][0]);
+	glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(viewUniformLocation, 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE, &projection[0][0]);
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[1]);
 	glBindVertexArray(-1);
@@ -765,26 +717,74 @@ void paintGL(void)
 
 	////////****************PAINT THIRD OBJECT BLOCK*************
 	glBindVertexArray(vao[2]);
-	glm::mat4 modelTransformMatrix2 = glm::mat4(1.0f);
-	modelTransformMatrix2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
+	glm::mat4 modeltranslation2 = glm::mat4(1.0f);
+	modeltranslation2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
 
 	glm::mat4 scaleMatrix2;
 	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(1.4f));  // the last is scallin coefficience
 
+	model = scaleMatrix2 * modeltranslation2;
 
-	glm::mat4 mvp2 = projectionMatrix * worldView * scaleMatrix2 * modelTransformMatrix2;
+	glm::mat4 mvp2 = projection * view * model;
 
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp2[0][0]);
+
 		//load and bind texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture[2]);
 		glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
 
 
+	glUniformMatrix4fv(mvpUniformLocation, 1, GL_FALSE, &mvp2[0][0]);
+	glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(viewUniformLocation, 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE, &projection[0][0]);
+
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[2]);
 	glBindVertexArray(-1);
 	glBindTexture(GL_TEXTURE_2D, -1);
 	//******************************************************
+
+	//********************* GIVE ME LIGHT! ********************************
+	//eyePosition
+	GLint eyePositionUniformLocation = glGetUniformLocation(programID, "eyePositionWorld");
+	//vec3 eyePosition(1.0f, 1.0f, 5.0f);
+	vec3 eyePositionWorld = cameraPosition;
+	glUniform3fv(eyePositionUniformLocation, 1, &eyePositionWorld[0]);
+
+	// ambientLight
+	GLint ambientLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
+	float tempAmpAdjust = ambAdjust + 0.1;
+	if (tempAmpAdjust <= 0) { tempAmpAdjust = 0.0; }
+	vec3 ambientLight(tempAmpAdjust, tempAmpAdjust, tempAmpAdjust);  // RGB light of ambient light
+	glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
+
+	//light position world   ... for now it's lightPositionWorld, slide 26
+	GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
+	vec3 lightPositionWorld(2.0f, 2.0f, 20.0f);
+
+	glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
+
+	//diffuse
+	GLuint diffuseLightUniformLocation = glGetUniformLocation(programID, "diffuseLight");
+
+
+	GLuint diffAdjustUniformLocation = glGetUniformLocation(programID, "diffAdjust");
+	printf("diffAdjust: %f\n", diffAdjust);
+	glUniform3fv(diffAdjustUniformLocation, 1, &diffAdjust);
+
+	//pass specular strength to the shader
+	GLint specularStrengthUniformLocation = glGetUniformLocation(programID, "specularStrength");
+	glUniform3fv(specularStrengthUniformLocation, 1, &specularStrength);
+
+
+
+
+	//vec3 diffuseLightPosition(diffBrightness, diffBrightness, diffBrightness);
+	//glUniform3fv(diffuseLightUniformLocation, 1, &diffuseLightPosition[0]);
+
+	//specular light
+
+	//****************************FINISHED LIGHTING*******************************
 
 
 

@@ -11,13 +11,17 @@ uniform vec3 lightPositionWorld;
 uniform vec3 eyePositionWorld;
 
 uniform sampler2D texture0;
+//uniform vec3 diffICoeff;
+uniform float diffAdjust;
+uniform float specularStrength;
 
 void main()
 {
 
 	vec3 lightVectorWorld = normalize(lightPositionWorld - vertexPositionWorld);
-	float brightness = dot(lightVectorWorld, normalize(normalWorld));
+	float brightness = max(dot(lightVectorWorld, normalize(normalWorld)), 0.0);
 	vec3 diffuseLight = vec3(brightness, brightness, brightness);
+	//diffuseLight = diffuseLight*diffICoeff;
 
 	//specular light
 	//vec3 reflectedLightVectorWorld = reflect(-lightVectorWorld, normalWorld);
@@ -26,9 +30,9 @@ void main()
 	//s = pow(s, 5);
 	//vec4 specularLight = vec4(s, 0, 0, 1);
 
-	daColor = vec4((texture(texture0, UV).rgb)*(ambientLight + diffuseLight), 1.0);
+	daColor = vec4((texture(texture0, UV).rgb)*(ambientLight + diffuseLight*diffAdjust), 1.0);
 	//daColor = vec4(texture(texture0, UV).rgb * ambientLight, 1.0);
-
+	//daColor = vec4((texture(texture0, UV).rgb)*(diffuseLight*diffAdjust), 1.0);
 }
 
 
