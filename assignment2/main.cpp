@@ -34,7 +34,7 @@ int HEIGHT = 1080;
 
 GLint programID;
 // Could define the Vao&Vbo and interaction parameter here
-const int numObj = 3;
+const int numObj = 4;
 GLuint vao[numObj];
 
 GLuint vbo[numObj];
@@ -57,7 +57,7 @@ float hor = 3.14f;
 float ver = 0.0f;
 float iniFov = 45.0f;
 
-
+bool cameraControlable = true;//by default camera controllable
 
 float scale1 = 1.0f;
 
@@ -218,6 +218,9 @@ void keyboard(unsigned char key, int x, int y)
 	if (key == '3') {
 		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme3.bmp");
 	}
+	if (key == '4') {
+		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\grass_texture.bmp");
+	}
 	//control the diffuse intensity 
 	if (key == 'q') {
 		diffAdjust = diffAdjust + 0.05f;
@@ -231,9 +234,9 @@ void keyboard(unsigned char key, int x, int y)
 	if (key == 'x') {
 		specAdjust = specAdjust - 0.05f;
 	}
-
-
-
+	if (key == ' ') {
+		cameraControlable = !cameraControlable;
+	}
 	if (key == '+') {
 		ambAdjust += 0.05;
 	}
@@ -422,6 +425,76 @@ GLuint loadBMP_custom(const char * imagepath) {
 	return textureID;
 }
 
+unsigned int loadCubemap(vector<const GLchar*> faces)
+{
+	int* width;
+	int* height;
+	unsigned char* imagedata;
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+	for (GLuint i = 0; i < faces.size(); i++) {
+
+		imagedata = loadBMP_data(faces[i], width, height);
+		if (imagedata == NULL) {
+			cout << "failed to load skybox" << endl;
+			return NULL;
+		}
+
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, *width, *height,
+			0, GL_BGR, GL_UNSIGNED_BYTE, imagedata);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, -1); 
+	return textureID;
+}
+
+unsigned char* loadBMP_data(const GLchar* imagepath, int* width, int* height) {
+
+	printf("Reading image %s\n", imagepath);
+
+	unsigned char header[54];
+	unsigned int dataPos;
+	unsigned int imageSize;
+	unsigned int width, height;
+	unsigned char * data;
+
+	FILE * file = fopen((char*)imagepath, "rb");
+	if (!file) { printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar(); return 0; }
+
+	if (fread(header, 1, 54, file) != 54) {
+		printf("Not a correct BMP file\n");
+		return 0;
+	}
+	if (header[0] != 'B' || header[1] != 'M') {
+		printf("Not a correct BMP file\n");
+		return 0;
+	}
+	if (*(int*)&(header[0x1E]) != 0) { printf("Not a correct BMP file\n");    return 0; }
+	if (*(int*)&(header[0x1C]) != 24) { printf("Not a correct BMP file\n");    return 0; }
+
+	dataPos = *(int*)&(header[0x0A]);
+	imageSize = *(int*)&(header[0x22]);
+	*width = *(int*)&(header[0x12]);
+	*height = *(int*)&(header[0x16]);
+	if (imageSize == 0)    imageSize = *width * *height * 3;
+	if (dataPos == 0)      dataPos = 54;
+
+	data = new unsigned char[imageSize];
+	fread(data, 1, imageSize, file);
+	fclose(file);
+
+	// OpenGL has now copied the data. Free our own version
+
+	return data;
+}
+
+
 void sendDataToOpenGL()
 {
 
@@ -594,6 +667,26 @@ void sendDataToOpenGL()
 	glBindVertexArray(-1);
 	//@@@@@@@@@@@@@@@@@@@@HIRD OBJECT : BLOCK@@@@@@@@@@@@@@@@@@@@@@@
 
+	//@@@@@@@@@@@@@@@@@@@@FOURTH OBJECT : SKYBOX@@@@@@@@@@@@@@@@@@@@@@@
+	GLfloat skyboxVertices[] =
+	{
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+	};
+	glBindVertexArray(vao[3]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glBindVertexArray(0); //unbind 
+
+
+
+
 }
 
 void paintGL(void)
@@ -657,7 +750,7 @@ void paintGL(void)
 	//pass specular strength to the shader
 	GLint specularStrengthUniformLocation = glGetUniformLocation(programID, "specularStrength");
 	if (specAdjust <= 0) { specAdjust = 0.0; }
-	vec3 specularStrength(specAdjust, specAdjust, specAdjust);  // RGB light of ambient light
+	vec3 specularStrength(specAdjust + 0.1, specAdjust, specAdjust);  // RGB light of ambient light
 	glUniform3fv(specularStrengthUniformLocation, 1, &specularStrength[0]);
 
 
