@@ -20,6 +20,7 @@ Student Name: Zuowen Wang
 #include <vector>
 
 GLuint loadBMP_custom(const char * imagepath);
+unsigned char* loadBMP_data(const GLchar* imagepath, int* width, int* height);
 
 using namespace std;
 using glm::vec3;
@@ -33,6 +34,7 @@ int HEIGHT = 1080;
 //float diffBrightness = 1.5f;
 
 GLint programID;
+GLint skyboxProgramID;
 // Could define the Vao&Vbo and interaction parameter here
 const int numObj = 4;
 GLuint vao[numObj];
@@ -50,8 +52,7 @@ float specAdjust = 0.1;
 
 float specularStrength = 0.5;
 
-glm::vec3 cameraPosition = glm::vec3(1.5f, 49.945f, 40.5f);
-glm::vec3 cameraGaze = glm::vec3(0.0f, -1.01f, -1.0f);
+
 
 float hor = 3.14f;
 float ver = 0.0f;
@@ -78,10 +79,15 @@ float scale = 4.5f;
 GLfloat pitch1 = 22.0f;
 GLfloat yaw1 = -90.0f;
 
+float g_g = 0;
+float b_b = 0;
+float v_v = 0;
+float n_n = 0;
+float f_f = 0;
+float h_h = 0;
 
-
-
-
+glm::vec3 cameraPosition = glm::vec3(1.5f, 40.945f, 40.5f);
+glm::vec3 cameraGaze = glm::vec3(0.0f, -0.01f, -1.0f);
 
 
 //a series utilities for setting shader parameters
@@ -189,9 +195,79 @@ void installShaders()
 	glUseProgram(programID);
 }
 
+void installSkyboxShaders()
+{
+	GLuint skyboxVertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	GLuint skyboxFragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+
+	const GLchar* adapter[1];
+	string temp = readShaderCode("skyboxVertexShaderCode.glsl");
+	adapter[0] = temp.c_str();
+	glShaderSource(skyboxVertexShaderID, 1, adapter, 0);
+	temp = readShaderCode("skyboxFragmentShaderCode.glsl");
+	adapter[0] = temp.c_str();
+	glShaderSource(skyboxFragmentShaderID, 1, adapter, 0);
+
+	glCompileShader(skyboxVertexShaderID);
+	glCompileShader(skyboxFragmentShaderID);
+
+	if (!checkShaderStatus(skyboxVertexShaderID) || !checkShaderStatus(skyboxFragmentShaderID))
+		return;
+
+	skyboxProgramID = glCreateProgram();
+	glAttachShader(skyboxProgramID, skyboxVertexShaderID);
+	glAttachShader(skyboxProgramID, skyboxFragmentShaderID);
+	glLinkProgram(skyboxProgramID);
+
+	if (!checkProgramStatus(skyboxProgramID))
+		return;
+
+	glDeleteShader(skyboxVertexShaderID);
+	glDeleteShader(skyboxFragmentShaderID);
+
+	glUseProgram(skyboxProgramID);
+}
+
 void keyboard(unsigned char key, int x, int y)
 {
+	if (key == '7') {
+		cameraGaze.x += 2.5;
+	}
+	if (key == '8') {
+		cameraGaze.x -= 2.5;
+	}
+	if (key == '9') {
+		cameraGaze.y += 2.5;
+	}
+	if (key == '6') {
+		cameraGaze.y -= 2.5;
+	}
+	if (key == '4') {
+		cameraGaze.z += 2.5;
+	}
+	if (key == '5') {
+		cameraGaze.z -= 2.5;
+	}
 
+
+	if (key == 'g') {
+		cameraPosition.x += 12.5;
+	}
+	if (key == 'b') {
+		cameraPosition.x -= 12.5;
+	}
+	if (key == 'v') {
+		cameraPosition.y += 12.5;
+	}
+	if (key == 'n') {
+		cameraPosition.y -= 12.5;
+	}
+	if (key == 'f') {
+		cameraPosition.z += 12.5;
+	}
+	if (key == 'h') {
+		cameraPosition.z -= 12.5;
+	}
 
 	if (key == 'r') {
 		rot = rot + 3;
@@ -218,7 +294,7 @@ void keyboard(unsigned char key, int x, int y)
 	if (key == '3') {
 		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme3.bmp");
 	}
-	if (key == '4') {
+	if (key == '0') {
 		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\grass_texture.bmp");
 	}
 	//control the diffuse intensity 
@@ -244,9 +320,6 @@ void keyboard(unsigned char key, int x, int y)
 		ambAdjust -= 0.05;
 	}
 }
-
-
-
 
 void move(int key, int x, int y)
 {
@@ -427,23 +500,24 @@ GLuint loadBMP_custom(const char * imagepath) {
 
 unsigned int loadCubemap(vector<const GLchar*> faces)
 {
-	int* width;
-	int* height;
+	int* width = (int *)malloc(sizeof(int *));
+	int* height = (int *)malloc(sizeof(int *));
+	*width = 0;
+	*height = 0;
 	unsigned char* imagedata;
 	GLuint textureID;
 	glGenTextures(1, &textureID);
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 	for (GLuint i = 0; i < faces.size(); i++) {
 
 		imagedata = loadBMP_data(faces[i], width, height);
-		if (imagedata == NULL) {
-			cout << "failed to load skybox" << endl;
-			return NULL;
-		}
 
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, *width, *height,
+		int temp_width = *width; int temp_height = *height;
+
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, temp_width, temp_height,
 			0, GL_BGR, GL_UNSIGNED_BYTE, imagedata);
+
 	}
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -461,7 +535,7 @@ unsigned char* loadBMP_data(const GLchar* imagepath, int* width, int* height) {
 	unsigned char header[54];
 	unsigned int dataPos;
 	unsigned int imageSize;
-	unsigned int width, height;
+	//unsigned int width, height;
 	unsigned char * data;
 
 	FILE * file = fopen((char*)imagepath, "rb");
@@ -665,37 +739,89 @@ void sendDataToOpenGL()
 	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(-1);
-	//@@@@@@@@@@@@@@@@@@@@HIRD OBJECT : BLOCK@@@@@@@@@@@@@@@@@@@@@@@
+	//@@@@@@@@@@@@@@@@@@@@FINIHIRD OBJECT : BLOCK@@@@@@@@@@@@@@@@@@@@@@@
 
 	//@@@@@@@@@@@@@@@@@@@@FOURTH OBJECT : SKYBOX@@@@@@@@@@@@@@@@@@@@@@@
 	GLfloat skyboxVertices[] =
 	{
-		-1.0f, 1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
 		1.0f, -1.0f, -1.0f,
 		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		1.0f, -1.0f,  1.0f,
+
+
+		- 1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f, -1.0f,
+		1.0f,  1.0f,  1.0f,
+		1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f
 	};
+
+	vector<const GLchar*> faces;
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_rt.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_lf.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_dn.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_up.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_bk.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_ft.bmp");
+
+	texture[3] = loadCubemap(faces);
+
 	glBindVertexArray(vao[3]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	glBindVertexArray(0); //unbind 
+	
+	glBindVertexArray(-1); //unbind 
 
-
-
+	//@@@@@@@@@@@@@@@@@@@@FINISHED OBJECT : SKYBOX@@@@@@@@@@@@@@@@@@@@@@@
 
 }
 
 void paintGL(void)
 {
-
 	//different objects have different model matrix
 	glm::mat4 model;   //for rotation
 	glm::mat4 view;    //for translation
 	glm::mat4 projection;
+
+		glm::mat4 modeltranslation0;
+	modeltranslation0 = glm::translate(glm::mat4(), glm::vec3(0.5f, 38.945f, 35.5f));
 
 	//this look at matrix is for common use
 	view = glm::lookAt(
@@ -706,13 +832,13 @@ void paintGL(void)
 		glm::vec3(0, 1, 0));
 
 	//this projection matrix is for commomn use
-	projection = glm::perspective(iniFov, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+	projection = glm::perspective(iniFov, (float)WIDTH / (float)HEIGHT, 0.1f, 8200.0f);
 	//******************COMMON MATRIX SECTION********************************
 
 	cout << "camera position: " << cameraPosition.x << "," << cameraPosition.y << "," << cameraPosition.z << endl;
 	cout << "gaze: " << cameraGaze.x << "," << cameraGaze.y << "," << cameraGaze.z << endl;
 
-
+	glUseProgram(programID);
 
 	GLuint modelUniformLocation = glGetUniformLocation(programID, "model");
 	GLuint viewUniformLocation = glGetUniformLocation(programID, "view");
@@ -757,12 +883,6 @@ void paintGL(void)
 	//specular light
 
 	//****************************FINISHED LIGHTING*******************************
-
-
-
-
-
-
 	glClearColor(0.1f, 0.1f, 0.13f, 0.9f); // set the background color
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -782,8 +902,8 @@ void paintGL(void)
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
 
-	glm::mat4 modeltranslation0;
-	modeltranslation0 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -5.0f));
+
+	//modeltranslation0 = glm::translate(glm::mat4(), cameraPosition);
 
 	glm::mat4 scaleMatrix0;
 	scaleMatrix0 = glm::scale(glm::mat4(2.0f), glm::vec3(5.0f));  // the last is scallin coefficience
@@ -863,8 +983,49 @@ void paintGL(void)
 	glBindTexture(GL_TEXTURE_2D, -1);
 	//******************************************************
 
-	
 
+	////////****************PAINT SKYBOX*********************
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//draw skybox
+	glDepthMask(GL_FALSE);
+	//glDisablse(GL_CULL_FACE);
+	//glDisEnable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
+
+	glUseProgram(skyboxProgramID);
+
+	GLuint skb_ModelUniformLocation = glGetUniformLocation(skyboxProgramID, "M");
+	glm::mat4 skb_modelMatrix = glm::mat4(1.0f);
+	glm::mat4 scaleMatrix3;
+	scaleMatrix3 = glm::scale(glm::mat4(1.0f), glm::vec3(2000.0f));  // the last is scallin coefficience
+
+	glm::mat4 modeltranslationNull;
+	modeltranslationNull = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 0.0f));
+	
+	skb_modelMatrix =  skb_modelMatrix * scaleMatrix3 * modeltranslationNull;
+
+	//remove any translation component of the view matrix
+	//glm::ma4 view = lm;ofji;wafioj
+	//glm::mat projection = a;iwja;woifjwafjio
+	glUniformMatrix4fv(skb_ModelUniformLocation, 1, GL_FALSE, &skb_modelMatrix[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgramID, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgramID, "projection"), 1, GL_FALSE, &projection[0][0]);
+
+	//skybox cube
+	glBindVertexArray(vao[3]);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, texture[3]);
+		glUniform1i(glGetUniformLocation(skyboxProgramID, "skybox"), 0);
+
+
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(-1);
+	glEnable(GL_CULL_FACE);
+	glDepthMask(GL_TRUE);
+
+	//glEnable(GL_DEPTH_TEST);
+	glUseProgram(programID);
+	//******************************************************
 
 
 	glFlush();
@@ -875,6 +1036,7 @@ void initializedGL(void) //run only once
 {
 	glewInit();
 	installShaders();
+	installSkyboxShaders();
 	sendDataToOpenGL();
 }
 
