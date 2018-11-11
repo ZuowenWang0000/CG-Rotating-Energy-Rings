@@ -27,6 +27,7 @@ using glm::vec3;
 using glm::mat4;
 using namespace glm;
 
+int counter = 0;
 
 int WIDTH = 1920;
 int HEIGHT = 1080;
@@ -58,7 +59,17 @@ float hor = 3.14f;
 float ver = 0.0f;
 float iniFov = 45.0f;
 
-bool cameraControlable = true;//by default camera controllable
+bool cameraControlable = false;//by default camera controllable
+//bool isFirstTime = true; // every time when camera control is avaiable the center moves to the center of the window
+float prevMouseX;
+float prevMouseY;
+bool firstTime = true;
+
+
+
+float cameraGazeOffsetX = 0;
+float cameraGazeOffsetY = 0;
+
 
 float scale1 = 1.0f;
 
@@ -76,8 +87,12 @@ double rot = 0;
 
 float scale = 4.5f;
 
-GLfloat pitch1 = 22.0f;
+GLfloat pitch1 = 0.0f;
 GLfloat yaw1 = -90.0f;
+GLfloat deltaX;
+GLfloat deltaY;
+GLfloat angleX;
+GLfloat angleY;
 
 float g_g = 0;
 float b_b = 0;
@@ -86,8 +101,8 @@ float n_n = 0;
 float f_f = 0;
 float h_h = 0;
 
-glm::vec3 cameraPosition = glm::vec3(1.5f, 258.945f, 800.5f);
-glm::vec3 cameraGaze = glm::vec3(0.0f, -1.01f, -10.3f);
+glm::vec3 cameraPosition = glm::vec3(1.5f, -228.945f, 800.5f);
+glm::vec3 cameraGaze = normalize(glm::vec3(0.0f, -1.01f, -10.3f));
 
 
 //a series utilities for setting shader parameters
@@ -230,26 +245,6 @@ void installSkyboxShaders()
 
 void keyboard(unsigned char key, int x, int y)
 {
-	if (key == '7') {
-		cameraGaze.x += 2.5;
-	}
-	if (key == '8') {
-		cameraGaze.x -= 2.5;
-	}
-	if (key == '9') {
-		cameraGaze.y += 2.5;
-	}
-	if (key == '6') {
-		cameraGaze.y -= 2.5;
-	}
-	if (key == '4') {
-		cameraGaze.z += 2.5;
-	}
-	if (key == '5') {
-		cameraGaze.z -= 2.5;
-	}
-
-
 	if (key == 'v') {
 		cameraPosition.x += 12.5;
 	}
@@ -286,7 +281,7 @@ void keyboard(unsigned char key, int x, int y)
 	}
 
 	if (key == '1') {
-		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme1.bmp");
+		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\grass_texture.bmp");
 	}
 	if (key == '2') {
 		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme2.bmp");
@@ -295,7 +290,7 @@ void keyboard(unsigned char key, int x, int y)
 		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme3.bmp");
 	}
 	if (key == '0') {
-		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\grass_texture.bmp");
+		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme1.bmp");
 	}
 	//control the diffuse intensity 
 	if (key == 'q') {
@@ -312,6 +307,7 @@ void keyboard(unsigned char key, int x, int y)
 	}
 	if (key == ' ') {
 		cameraControlable = !cameraControlable;
+
 	}
 	if (key == '+') {
 		ambAdjust += 0.05;
@@ -329,15 +325,39 @@ void move(int key, int x, int y)
 void PassiveMouse(int x, int y)
 {
 	//TODO: Use Mouse to do interactive events and animation
-	int mouseX;
-	int mouseY;
+	if (firstTime) {
+		prevMouseX = x;
+		prevMouseY = y;
+		firstTime = false;
+	}
+	if (cameraControlable) {
+		deltaX = prevMouseX - x;
+		deltaY = prevMouseY - y;
 
-	mouseX = x;
-	mouseY = y;
+		angleX = deltaX / 1920.0 *20;
+		angleY = deltaY / 1080.0 *28;
 
+		pitch1 = pitch1 - angleY;
+		yaw1 = yaw1 + angleX;
 
+		if (pitch1 > 89.0f) { pitch1 = 89.0f; } // to avoid deadlock
+		if (pitch1 < -89.0f) { pitch1 = -89.0f; }
+		glm::vec3 temp = glm::vec3(
+			cos(glm::radians(pitch1)) * cos(glm::radians(yaw1)),
+			sin(glm::radians(pitch1)),
+			sin(glm::radians(yaw1)) * cos(glm::radians(pitch1)));
 
+		cameraGaze = glm::normalize(temp);
 
+		if (counter % 100 == 0) {
+			cout << " prevMouse :  ( " << prevMouseX << " , " << prevMouseY << " )" << endl;
+			cout << " delta :  ( " << deltaX << " , " << deltaY << " )" << endl;
+			cout << " coord :  ( " << x << " , " << y << " )" << endl;
+		}
+
+		prevMouseX = x;
+		prevMouseY = y;
+	}
 
 }
 
@@ -486,8 +506,8 @@ GLuint loadBMP_custom(const char * imagepath) {
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -524,7 +544,7 @@ unsigned int loadCubemap(vector<const GLchar*> faces)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, -1);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, -1);
 	return textureID;
 }
 
@@ -556,7 +576,7 @@ unsigned char* loadBMP_data(const GLchar* imagepath, int* width, int* height) {
 	imageSize = *(int*)&(header[0x22]);
 	*width = *(int*)&(header[0x12]);
 	*height = *(int*)&(header[0x16]);
-	if (imageSize == 0)    imageSize = *width * *height * 3;
+	if (imageSize == 0)    imageSize = (*width) * (*height * 3);
 	if (dataPos == 0)      dataPos = 54;
 
 	data = new unsigned char[imageSize];
@@ -587,7 +607,7 @@ void sendDataToOpenGL()
 	std::vector<glm::vec2> uvs0;
 	std::vector<glm::vec3> normals0;
 	bool obj1 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\plane.obj", vertices0, uvs0, normals0);
-	texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme2.bmp"); //default plane texture
+	texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\grass_texture.bmp"); //default plane texture
 	glBindVertexArray(vao[0]);
 	//send vao of obj0 (plane) to openGL
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -796,13 +816,14 @@ void sendDataToOpenGL()
 	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_rt.bmp");
 	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_dn.bmp");
 	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_up.bmp");
-
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_lf.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_bk.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_ft.bmp");
 	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_rt.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_dn.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_lf.bmp");
 	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_up.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_dn.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_ft.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_bk.bmp");
+
+
 
 	texture[3] = loadCubemap(faces);
 
@@ -826,7 +847,7 @@ void paintGL(void)
 	glm::mat4 projection;
 
 	glm::mat4 modeltranslation0;
-	modeltranslation0 = glm::translate(glm::mat4(), glm::vec3(0.0f, -450.0f, 0.0f));
+	modeltranslation0 = glm::translate(glm::mat4(), glm::vec3(0.0f, -750.0f, 0.0f));
 
 	//this look at matrix is for common use
 	view = glm::lookAt(
@@ -839,9 +860,17 @@ void paintGL(void)
 	//this projection matrix is for commomn use
 	projection = glm::perspective(iniFov, (float)WIDTH / (float)HEIGHT, 0.1f, 8200.0f);
 	//******************COMMON MATRIX SECTION********************************
+	counter++;
 
-	cout << "camera position: " << cameraPosition.x << "," << cameraPosition.y << "," << cameraPosition.z << endl;
-	cout << "gaze: " << cameraGaze.x << "," << cameraGaze.y << "," << cameraGaze.z << endl;
+	if (counter % 100 == 0) {
+		cout << "camera position: " << cameraPosition.x << "," << cameraPosition.y << "," << cameraPosition.z << endl;
+		cout << "cameraGaze : " << cameraGaze.x << "  " << cameraGaze.y << "  " << cameraGaze.z << endl;
+		cout << "cameraControlable : " << cameraControlable << endl;
+		cout << "yaw : " << yaw1 << "  pitch : " << pitch1 << endl;
+		cout << "deltaX  : " << deltaX << "   deltaY : " << deltaY << endl;
+		cout << "angleX  : " << angleX << "   AngleY : " << angleY << endl;
+	
+	}
 
 	glUseProgram(programID);
 
@@ -869,7 +898,7 @@ void paintGL(void)
 	//light position world   ... for now it's lightPositionWorld, slide 26
 	GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
 	//vec3 lightPositionWorld(2.0f, 2.0f, 20.0f);
-	vec3 lightPositionWorld = vec3(150.0, 80.0, 60.0);
+	vec3 lightPositionWorld = vec3(150.0, -280.0, 60.0);
 	glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
 
 	//diffuse
@@ -881,7 +910,7 @@ void paintGL(void)
 	//pass specular strength to the shader
 	GLint specularStrengthUniformLocation = glGetUniformLocation(programID, "specularStrength");
 	if (specAdjust <= 0) { specAdjust = 0.0; }
-	vec3 specularStrength(specAdjust + 0.1, specAdjust, specAdjust);  // RGB light of ambient light
+	vec3 specularStrength(specAdjust, specAdjust+0.1, specAdjust);  // RGB light of ambient light
 	glUniform3fv(specularStrengthUniformLocation, 1, &specularStrength[0]);
 
 
@@ -907,7 +936,8 @@ void paintGL(void)
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
 
-
+	//glm::mat4 store_view = view;
+	//view = glm::mat4(glm::mat3(view));
 	//modeltranslation0 = glm::translate(glm::mat4(), cameraPosition);
 
 	glm::mat4 scaleMatrix0;
@@ -926,18 +956,22 @@ void paintGL(void)
 	//disable all buffers
 	glBindVertexArray(-1);
 	glBindTexture(GL_TEXTURE_2D, -1);
+
+	//restore view
+	//view = store_view;
+
 	//******************************************************
 
 
 	//****************PAINT SECOND OBJECT JEEP*************
 	glBindVertexArray(vao[1]);
 	glm::mat4 modeltranslation1 = glm::mat4(1.0f);
-	modeltranslation1 = glm::translate(glm::mat4(), glm::vec3(0.0f, 35.0f, 0.0f));
+	modeltranslation1 = glm::translate(glm::mat4(), glm::vec3(0.0f, 380.0f, 0.0f));
 
 	glm::mat4 scaleMatrix1;
-	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(6.3f));  // the last is scallin coefficience
+	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(12.3f));  // the last is scallin coefficience
 
-	model = modeltranslation1 * scaleMatrix1;
+	model = modeltranslation0 * modeltranslation1 *  scaleMatrix1;
 
 	glm::mat4 mvp1 = projection * view * model;
 
@@ -962,10 +996,10 @@ void paintGL(void)
 	////////****************PAINT THIRD OBJECT BLOCK*************
 	glBindVertexArray(vao[2]);
 	glm::mat4 modeltranslation2 = glm::mat4(1.0f);
-	modeltranslation2 = glm::translate(glm::mat4(), glm::vec3(20.0f, 80.0f, 10.0f));
+	modeltranslation2 = glm::translate(glm::mat4(), glm::vec3(5.0f, 12.0f, 5.0f));
 
 	glm::mat4 scaleMatrix2;
-	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(6.4f));  // the last is scallin coefficience
+	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(10.4f));  // the last is scallin coefficience
 
 	model =  modeltranslation2 * scaleMatrix2;
 
@@ -1012,6 +1046,8 @@ void paintGL(void)
 	//remove any translation component of the view matrix
 	//glm::ma4 view = lm;ofji;wafioj
 	//glm::mat projection = a;iwja;woifjwafjio
+
+	view = glm::mat4(glm::mat3(view));
 	glUniformMatrix4fv(skb_ModelUniformLocation, 1, GL_FALSE, &skb_modelMatrix[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(skyboxProgramID, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(skyboxProgramID, "projection"), 1, GL_FALSE, &projection[0][0]);
