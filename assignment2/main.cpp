@@ -40,6 +40,8 @@ GLint skyboxProgramID;
 const int numObj = 4;
 GLuint vao[numObj];
 
+glm::mat4 model_temp;
+
 GLuint vbo[numObj];
 GLuint uvbo[numObj];
 GLuint nvbo[numObj];
@@ -59,6 +61,9 @@ float hor = 3.14f;
 float ver = 0.0f;
 float iniFov = 45.0f;
 float rotateCounter = 0;
+
+float dx = 0;
+float dy = 0;
 
 bool cameraControlable = false;//by default camera controllable
 //bool isFirstTime = true; // every time when camera control is avaiable the center moves to the center of the window
@@ -102,6 +107,12 @@ float h_h = 0;
 
 glm::vec3 cameraPosition = glm::vec3(1.5f, -228.945f, 800.5f);
 glm::vec3 cameraGaze = normalize(glm::vec3(0.0f, -1.01f, -10.3f));
+
+glm::mat4 carMovement;
+bool moveSignal = false;
+float movestep = 1.0f;
+float carPositionXdelta = 0;
+float carPositionYdelta = 0;
 
 
 //a series utilities for setting shader parameters
@@ -318,10 +329,16 @@ void move(int key, int x, int y)
 	//TODO: Use arrow keys to do interactive events and animation
 	switch (key) {
 	case GLUT_KEY_UP:
-		up_press_num += 1.3;
+		dx = movestep * cos(left_press_num - right_press_num);
+		dy = movestep * sin(left_press_num - right_press_num);
+		carPositionXdelta += movestep * cos(left_press_num - right_press_num);
+		carPositionYdelta += movestep * sin(left_press_num - right_press_num);
 		break;
 	case GLUT_KEY_DOWN:
-		down_press_num += 1.3;
+		dx = movestep * cos(left_press_num - right_press_num);
+		dy = movestep * sin(left_press_num - right_press_num);
+		carPositionXdelta -= movestep * cos(left_press_num - right_press_num);
+		carPositionYdelta -= movestep * sin(left_press_num - right_press_num);
 		break;
 	case GLUT_KEY_LEFT:
 		left_press_num += 0.05;
@@ -883,6 +900,8 @@ void paintGL(void)
 		cout << "deltaX  : " << deltaX << "   deltaY : " << deltaY << endl;
 		cout << "angleX  : " << angleX << "   AngleY : " << angleY << endl;
 		cout << "left_press_num  " << left_press_num << "  up_press_num  " << up_press_num << endl;
+		cout << "deltaX  " << carPositionXdelta << "   deltaY  " << carPositionYdelta << endl;
+		cout << "dx  " << dx << "   dy  " << dy << endl;
 	}
 
 	glUseProgram(programID);
@@ -977,6 +996,7 @@ void paintGL(void)
 
 
 	//****************PAINT SECOND OBJECT JEEP*************
+
 	glBindVertexArray(vao[1]);
 	glm::mat4 modeltranslation1 = glm::mat4(1.0f);
 	modeltranslation1 = glm::translate(glm::mat4(), glm::vec3(0.0f, 380.0f, 0.0f));
@@ -988,9 +1008,9 @@ void paintGL(void)
 
 
 
-	model = glm::rotate(model, (float)(2 + left_press_num - right_press_num), vec3(0, 1, 0));
+	model = glm::rotate(model, (float)(left_press_num - right_press_num), vec3(0, 1, 0));
 
-	
+	model = glm::translate(model, vec3(carPositionXdelta, 0, carPositionYdelta));
 
 	glm::mat4 mvp1 = projection * view * model;
 
@@ -1112,7 +1132,7 @@ int main(int argc, char *argv[])
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
 	glutInitWindowSize(WIDTH, HEIGHT);
-	glutCreateWindow("Assignment 2");
+	glutCreateWindow("Assignment 2. openGL is so difficult");
 
 
 	//TODO:
