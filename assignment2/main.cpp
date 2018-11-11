@@ -52,20 +52,19 @@ float ambAdjust = 0.0;
 float specAdjust = 0.1;
 
 float specularStrength = 0.5;
-
+bool stopRotate = false;
 
 
 float hor = 3.14f;
 float ver = 0.0f;
 float iniFov = 45.0f;
+float rotateCounter = 0;
 
 bool cameraControlable = false;//by default camera controllable
 //bool isFirstTime = true; // every time when camera control is avaiable the center moves to the center of the window
 float prevMouseX;
 float prevMouseY;
 bool firstTime = true;
-
-
 
 float cameraGazeOffsetX = 0;
 float cameraGazeOffsetY = 0;
@@ -74,10 +73,10 @@ float cameraGazeOffsetY = 0;
 float scale1 = 1.0f;
 
 float x_delta = 0.1f;
-float i_press_num = 0;
-float k_press_num = 0;
-float j_press_num = 0;
-float l_press_num = 0;
+float up_press_num = 0;
+float down_press_num = 0;
+float left_press_num = 0;
+float right_press_num = 0;
 int angle_press_num = 0;
 
 double lookX = 0;
@@ -245,6 +244,13 @@ void installSkyboxShaders()
 
 void keyboard(unsigned char key, int x, int y)
 {
+	//cout << "haaaaaaaaaaaaaaaaaaaaa:" << endl;
+	//cout << endl;
+	//cout << key << endl;
+	//cout << endl;
+	//cout << "haaaaaaaaaaaaaaaaaaaaa:" << endl;
+
+
 	if (key == 'v') {
 		cameraPosition.x += 12.5;
 	}
@@ -264,21 +270,10 @@ void keyboard(unsigned char key, int x, int y)
 		cameraPosition.z -= 12.5;
 	}
 
-	if (key == 'r') {
-		rot = rot + 3;
+	if (key == 's') {
+		stopRotate = !stopRotate;
 	}
-	if (key == 'i') {
-		i_press_num = i_press_num + 0.5;
-	}
-	if (key == 'k') {
-		k_press_num = k_press_num - 0.5;
-	}
-	if (key == 'j') {
-		j_press_num = j_press_num - 0.5;
-	}
-	if (key == 'l') {
-		l_press_num = l_press_num + 0.5;
-	}
+
 
 	if (key == '1') {
 		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\grass_texture.bmp");
@@ -311,6 +306,7 @@ void keyboard(unsigned char key, int x, int y)
 	}
 	if (key == '+') {
 		ambAdjust += 0.05;
+		cout << "HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
 	}
 	if (key == '-') {
 		ambAdjust -= 0.05;
@@ -320,6 +316,23 @@ void keyboard(unsigned char key, int x, int y)
 void move(int key, int x, int y)
 {
 	//TODO: Use arrow keys to do interactive events and animation
+	switch (key) {
+	case GLUT_KEY_UP:
+		up_press_num += 1.3;
+		break;
+	case GLUT_KEY_DOWN:
+		down_press_num += 1.3;
+		break;
+	case GLUT_KEY_LEFT:
+		left_press_num += 0.05;
+		break;
+	case GLUT_KEY_RIGHT:
+		right_press_num += 0.05;
+		break;
+	}
+
+
+
 }
 
 void PassiveMouse(int x, int y)
@@ -869,7 +882,7 @@ void paintGL(void)
 		cout << "yaw : " << yaw1 << "  pitch : " << pitch1 << endl;
 		cout << "deltaX  : " << deltaX << "   deltaY : " << deltaY << endl;
 		cout << "angleX  : " << angleX << "   AngleY : " << angleY << endl;
-	
+		cout << "left_press_num  " << left_press_num << "  up_press_num  " << up_press_num << endl;
 	}
 
 	glUseProgram(programID);
@@ -890,7 +903,7 @@ void paintGL(void)
 
 	// ambientLight
 	GLint ambientLightUniformLocation = glGetUniformLocation(programID, "ambientLight");
-	float tempAmpAdjust = ambAdjust + 0.1;
+	float tempAmpAdjust = ambAdjust + 0.2;
 	if (tempAmpAdjust <= 0) { tempAmpAdjust = 0.0; }
 	vec3 ambientLight(tempAmpAdjust, tempAmpAdjust, tempAmpAdjust);  // RGB light of ambient light
 	glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
@@ -973,6 +986,12 @@ void paintGL(void)
 
 	model = modeltranslation0 * modeltranslation1 *  scaleMatrix1;
 
+
+
+	model = glm::rotate(model, (float)(2 + left_press_num - right_press_num), vec3(0, 1, 0));
+
+	
+
 	glm::mat4 mvp1 = projection * view * model;
 
 
@@ -995,6 +1014,11 @@ void paintGL(void)
 
 	////////****************PAINT THIRD OBJECT BLOCK*************
 	glBindVertexArray(vao[2]);
+
+	if (!stopRotate) {
+		rotateCounter += 0.0005;
+	}
+
 	glm::mat4 modeltranslation2 = glm::mat4(1.0f);
 	modeltranslation2 = glm::translate(glm::mat4(), glm::vec3(5.0f, 12.0f, 5.0f));
 
@@ -1002,6 +1026,8 @@ void paintGL(void)
 	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(10.4f));  // the last is scallin coefficience
 
 	model =  modeltranslation2 * scaleMatrix2;
+	model = glm::rotate(model, (float)(rotateCounter), glm::vec3(0, 0, 1));
+
 
 	glm::mat4 mvp2 = projection * view * model;
 
