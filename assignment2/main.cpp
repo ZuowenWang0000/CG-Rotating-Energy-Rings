@@ -7,7 +7,7 @@ Student ID: 1155123906
 Student Name: Zuowen Wang
 *********************************************************/
 
-//version 23:01   Nov.8
+
 
 #define _CRT_SECURE_NO_DEPRECATE
 #include "C:\Users\cprj2748\Downloads\Project2\Dependencies\glew\glew.h"
@@ -86,8 +86,8 @@ float n_n = 0;
 float f_f = 0;
 float h_h = 0;
 
-glm::vec3 cameraPosition = glm::vec3(1.5f, 40.945f, 40.5f);
-glm::vec3 cameraGaze = glm::vec3(0.0f, -0.01f, -1.0f);
+glm::vec3 cameraPosition = glm::vec3(1.5f, 258.945f, 800.5f);
+glm::vec3 cameraGaze = glm::vec3(0.0f, -1.01f, -10.3f);
 
 
 //a series utilities for setting shader parameters
@@ -250,22 +250,22 @@ void keyboard(unsigned char key, int x, int y)
 	}
 
 
-	if (key == 'g') {
+	if (key == 'v') {
 		cameraPosition.x += 12.5;
 	}
-	if (key == 'b') {
+	if (key == 'n') {
 		cameraPosition.x -= 12.5;
 	}
-	if (key == 'v') {
+	if (key == 'b') {
 		cameraPosition.y += 12.5;
 	}
-	if (key == 'n') {
+	if (key == 'g') {
 		cameraPosition.y -= 12.5;
 	}
-	if (key == 'f') {
+	if (key == 'h') {
 		cameraPosition.z += 12.5;
 	}
-	if (key == 'h') {
+	if (key == 'f') {
 		cameraPosition.z -= 12.5;
 	}
 
@@ -335,7 +335,7 @@ void PassiveMouse(int x, int y)
 	mouseX = x;
 	mouseY = y;
 
-	
+
 
 
 
@@ -465,7 +465,7 @@ GLuint loadBMP_custom(const char * imagepath) {
 	imageSize = *(int*)&(header[0x22]);
 	width = *(int*)&(header[0x12]);
 	height = *(int*)&(header[0x16]);
-	if (imageSize == 0)    imageSize = width*height * 3;
+	if (imageSize == 0)    imageSize = width * height * 3;
 	if (dataPos == 0)      dataPos = 54;
 
 	data = new unsigned char[imageSize];
@@ -524,7 +524,7 @@ unsigned int loadCubemap(vector<const GLchar*> faces)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, -1); 
+	glBindTexture(GL_TEXTURE_CUBE_MAP, -1);
 	return textureID;
 }
 
@@ -632,7 +632,7 @@ void sendDataToOpenGL()
 	);
 	glEnableVertexAttribArray(2);
 
-	glBindVertexArray(-1); 
+	glBindVertexArray(-1);
 	//@@@@@@@@@@@@@@@@@@@@FIRST OBJECT : PLANE@@@@@@@@@@@@@@@@@@@@@@@
 
 
@@ -744,46 +744,43 @@ void sendDataToOpenGL()
 	//@@@@@@@@@@@@@@@@@@@@FOURTH OBJECT : SKYBOX@@@@@@@@@@@@@@@@@@@@@@@
 	GLfloat skyboxVertices[] =
 	{
-
+		//left
 		-1.0f, -1.0f,  1.0f,
 		-1.0f, -1.0f, -1.0f,
 		-1.0f,  1.0f, -1.0f,
 		-1.0f,  1.0f, -1.0f,
 		-1.0f,  1.0f,  1.0f,
 		-1.0f, -1.0f,  1.0f,
-
+		//back
 		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
 		1.0f, -1.0f, -1.0f,
 		1.0f, -1.0f, -1.0f,
 		1.0f,  1.0f, -1.0f,
 		-1.0f,  1.0f, -1.0f,
-
-
+		//front
 		-1.0f, -1.0f,  1.0f,
 		-1.0f,  1.0f,  1.0f,
 		1.0f,  1.0f,  1.0f,
 		1.0f,  1.0f,  1.0f,
 		1.0f, -1.0f,  1.0f,
 		-1.0f, -1.0f,  1.0f,
-
+		//right
 		1.0f, -1.0f, -1.0f,
 		1.0f, -1.0f,  1.0f,
 		1.0f,  1.0f,  1.0f,
 		1.0f,  1.0f,  1.0f,
 		1.0f,  1.0f, -1.0f,
 		1.0f, -1.0f, -1.0f,
-
-
+		//bottom
 		-1.0f, -1.0f, -1.0f,
 		-1.0f, -1.0f,  1.0f,
 		1.0f, -1.0f, -1.0f,
 		1.0f, -1.0f, -1.0f,
 		-1.0f, -1.0f,  1.0f,
 		1.0f, -1.0f,  1.0f,
-
-
-		- 1.0f,  1.0f, -1.0f,
+		//up
+		-1.0f,  1.0f, -1.0f,
 		1.0f,  1.0f, -1.0f,
 		1.0f,  1.0f,  1.0f,
 		1.0f,  1.0f,  1.0f,
@@ -792,12 +789,20 @@ void sendDataToOpenGL()
 	};
 
 	vector<const GLchar*> faces;
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_rt.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_lf.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_dn.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_up.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_bk.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_ft.bmp");
+
+	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_lf.bmp");
+	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_bk.bmp");
+	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_ft.bmp");
+	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_rt.bmp");
+	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_dn.bmp");
+	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_up.bmp");
+
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_lf.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_bk.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_ft.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_rt.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_dn.bmp");
+	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_up.bmp");
 
 	texture[3] = loadCubemap(faces);
 
@@ -806,10 +811,10 @@ void sendDataToOpenGL()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	
+
 	glBindVertexArray(-1); //unbind 
 
-	//@@@@@@@@@@@@@@@@@@@@FINISHED OBJECT : SKYBOX@@@@@@@@@@@@@@@@@@@@@@@
+						   //@@@@@@@@@@@@@@@@@@@@FINISHED OBJECT : SKYBOX@@@@@@@@@@@@@@@@@@@@@@@
 
 }
 
@@ -820,8 +825,8 @@ void paintGL(void)
 	glm::mat4 view;    //for translation
 	glm::mat4 projection;
 
-		glm::mat4 modeltranslation0;
-	modeltranslation0 = glm::translate(glm::mat4(), glm::vec3(0.5f, 38.945f, 35.5f));
+	glm::mat4 modeltranslation0;
+	modeltranslation0 = glm::translate(glm::mat4(), glm::vec3(0.0f, -450.0f, 0.0f));
 
 	//this look at matrix is for common use
 	view = glm::lookAt(
@@ -864,7 +869,7 @@ void paintGL(void)
 	//light position world   ... for now it's lightPositionWorld, slide 26
 	GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
 	//vec3 lightPositionWorld(2.0f, 2.0f, 20.0f);
-	vec3 lightPositionWorld = vec3(2.0, 20.0, 20.0);
+	vec3 lightPositionWorld = vec3(150.0, 80.0, 60.0);
 	glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
 
 	//diffuse
@@ -885,7 +890,7 @@ void paintGL(void)
 	//****************************FINISHED LIGHTING*******************************
 	glClearColor(0.1f, 0.1f, 0.13f, 0.9f); // set the background color
 
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//TODO:
 	//Set lighting information, such as position and color of lighting source
 	//Set transformation matrix
@@ -906,8 +911,8 @@ void paintGL(void)
 	//modeltranslation0 = glm::translate(glm::mat4(), cameraPosition);
 
 	glm::mat4 scaleMatrix0;
-	scaleMatrix0 = glm::scale(glm::mat4(2.0f), glm::vec3(5.0f));  // the last is scallin coefficience
-	model = scaleMatrix0 * modeltranslation0;  //model for this object cosist of one translation and scalling
+	scaleMatrix0 = glm::scale(glm::mat4(1.0f), glm::vec3(1000.0f));  // the last is scallin coefficience
+	model = modeltranslation0 * scaleMatrix0;  //model for this object cosist of one translation and scalling
 
 	glm::mat4 mvp0 = projection * view * model;
 
@@ -927,20 +932,20 @@ void paintGL(void)
 	//****************PAINT SECOND OBJECT JEEP*************
 	glBindVertexArray(vao[1]);
 	glm::mat4 modeltranslation1 = glm::mat4(1.0f);
-	modeltranslation1 = glm::translate(glm::mat4(), glm::vec3(0.0f, -1.0f, -4.0f));
+	modeltranslation1 = glm::translate(glm::mat4(), glm::vec3(0.0f, 35.0f, 0.0f));
 
 	glm::mat4 scaleMatrix1;
-	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(1.3f));  // the last is scallin coefficience
+	scaleMatrix1 = glm::scale(glm::mat4(1.0f), glm::vec3(6.3f));  // the last is scallin coefficience
 
-	model = scaleMatrix1 * modeltranslation1 * modeltranslation0;
+	model = modeltranslation1 * scaleMatrix1;
 
 	glm::mat4 mvp1 = projection * view * model;
 
 
-		//load and bind texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture[1]);
-		glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
+	//load and bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture[1]);
+	glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
 
 
 	glUniformMatrix4fv(mvpUniformLocation, 1, GL_FALSE, &mvp1[0][0]);
@@ -957,20 +962,20 @@ void paintGL(void)
 	////////****************PAINT THIRD OBJECT BLOCK*************
 	glBindVertexArray(vao[2]);
 	glm::mat4 modeltranslation2 = glm::mat4(1.0f);
-	modeltranslation2 = glm::translate(glm::mat4(), glm::vec3(0.0f, 5.0f, -4.0f));
+	modeltranslation2 = glm::translate(glm::mat4(), glm::vec3(20.0f, 80.0f, 10.0f));
 
 	glm::mat4 scaleMatrix2;
-	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(1.4f));  // the last is scallin coefficience
+	scaleMatrix2 = glm::scale(glm::mat4(1.0f), glm::vec3(6.4f));  // the last is scallin coefficience
 
-	model = scaleMatrix2 * modeltranslation2 * modeltranslation1 * modeltranslation0;
+	model =  modeltranslation2 * scaleMatrix2;
 
 	glm::mat4 mvp2 = projection * view * model;
 
 
-		//load and bind texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture[2]);
-		glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
+	//load and bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture[2]);
+	glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
 
 
 	glUniformMatrix4fv(mvpUniformLocation, 1, GL_FALSE, &mvp2[0][0]);
@@ -1001,8 +1006,8 @@ void paintGL(void)
 
 	glm::mat4 modeltranslationNull;
 	modeltranslationNull = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, 0.0f));
-	
-	skb_modelMatrix =  skb_modelMatrix * scaleMatrix3 * modeltranslationNull;
+
+	skb_modelMatrix = skb_modelMatrix * scaleMatrix3 * modeltranslationNull;
 
 	//remove any translation component of the view matrix
 	//glm::ma4 view = lm;ofji;wafioj
@@ -1013,9 +1018,9 @@ void paintGL(void)
 
 	//skybox cube
 	glBindVertexArray(vao[3]);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, texture[3]);
-		glUniform1i(glGetUniformLocation(skyboxProgramID, "skybox"), 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture[3]);
+	glUniform1i(glGetUniformLocation(skyboxProgramID, "skybox"), 0);
 
 
 	glDrawArrays(GL_TRIANGLES, 0, 36);
