@@ -37,7 +37,7 @@ int HEIGHT = 1080;
 GLint programID;
 GLint skyboxProgramID;
 // Could define the Vao&Vbo and interaction parameter here
-const int numObj = 4;
+const int numObj = 5;
 GLuint vao[numObj];
 
 glm::mat4 model_temp;
@@ -55,7 +55,7 @@ float specAdjust = 0.1;
 
 float specularStrength = 0.5;
 bool stopRotate = false;
-
+bool firstEnter = true;
 
 float hor = 3.14f;
 float ver = 0.0f;
@@ -65,7 +65,7 @@ float rotateCounter = 0;
 float dx = 0;
 float dy = 0;
 
-bool cameraControlable = false;//by default camera controllable
+bool cameraControlable = true;//by default camera controllable
 //bool isFirstTime = true; // every time when camera control is avaiable the center moves to the center of the window
 float prevMouseX;
 float prevMouseY;
@@ -81,7 +81,7 @@ float x_delta = 0.1f;
 float up_press_num = 0;
 float down_press_num = 0;
 float left_press_num = 0;
-float right_press_num = 0;
+float right_press_num = 0.8;
 int angle_press_num = 0;
 
 double lookX = 0;
@@ -90,7 +90,7 @@ double lookZ = 0;
 double rot = 0;
 
 float scale = 4.5f;
-
+vec3 tempLight = vec3(0,0,0);
 GLfloat pitch1 = 0.0f;
 GLfloat yaw1 = -90.0f;
 GLfloat deltaX;
@@ -108,11 +108,16 @@ float h_h = 0;
 glm::vec3 cameraPosition = glm::vec3(1.5f, -228.945f, 800.5f);
 glm::vec3 cameraGaze = normalize(glm::vec3(0.0f, -1.01f, -10.3f));
 
-glm::mat4 carMovement;
+glm::mat4 carMovement = mat4(1.0);
 bool moveSignal = false;
 float movestep = 1.0f;
 float carPositionXdelta = 0;
 float carPositionYdelta = 0;
+vec3 carPositionDelta = vec3(0,0,0);
+
+float carYaw = 0;
+float carPitch = 0;
+vec3 carForward = vec3(1.0, 0.0, 0.0);
 
 
 //a series utilities for setting shader parameters
@@ -255,12 +260,9 @@ void installSkyboxShaders()
 
 void keyboard(unsigned char key, int x, int y)
 {
-	//cout << "haaaaaaaaaaaaaaaaaaaaa:" << endl;
-	//cout << endl;
-	//cout << key << endl;
-	//cout << endl;
-	//cout << "haaaaaaaaaaaaaaaaaaaaa:" << endl;
-
+	if (key == 's') {
+		stopRotate = !stopRotate;
+	}
 
 	if (key == 'v') {
 		cameraPosition.x += 12.5;
@@ -281,22 +283,18 @@ void keyboard(unsigned char key, int x, int y)
 		cameraPosition.z -= 12.5;
 	}
 
-	if (key == 's') {
-		stopRotate = !stopRotate;
-	}
-
 
 	if (key == '1') {
-		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\grass_texture.bmp");
+		texture[0] = loadBMP_custom("./grass_texture.bmp");
 	}
 	if (key == '2') {
-		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme2.bmp");
+		texture[0] = loadBMP_custom("./theme2.bmp");
 	}
 	if (key == '3') {
-		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme3.bmp");
+		texture[0] = loadBMP_custom("./theme3.bmp");
 	}
 	if (key == '0') {
-		texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\theme1.bmp");
+		texture[0] = loadBMP_custom("./theme1.bmp");
 	}
 	//control the diffuse intensity 
 	if (key == 'q') {
@@ -317,7 +315,6 @@ void keyboard(unsigned char key, int x, int y)
 	}
 	if (key == '+') {
 		ambAdjust += 0.05;
-		cout << "HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
 	}
 	if (key == '-') {
 		ambAdjust -= 0.05;
@@ -328,24 +325,23 @@ void move(int key, int x, int y)
 {
 	//TODO: Use arrow keys to do interactive events and animation
 	switch (key) {
-	case GLUT_KEY_UP:
-		dx = movestep * cos(left_press_num - right_press_num);
-		dy = movestep * sin(left_press_num - right_press_num);
-		carPositionXdelta += movestep * cos(left_press_num - right_press_num);
-		carPositionYdelta += movestep * sin(left_press_num - right_press_num);
-		break;
-	case GLUT_KEY_DOWN:
-		dx = movestep * cos(left_press_num - right_press_num);
-		dy = movestep * sin(left_press_num - right_press_num);
-		carPositionXdelta -= movestep * cos(left_press_num - right_press_num);
-		carPositionYdelta -= movestep * sin(left_press_num - right_press_num);
-		break;
 	case GLUT_KEY_LEFT:
 		left_press_num += 0.05;
 		break;
 	case GLUT_KEY_RIGHT:
 		right_press_num += 0.05;
 		break;
+	case GLUT_KEY_DOWN:
+		carPitch = left_press_num - right_press_num;
+		carForward = (carForward * cos(carPitch)) + vec3(1, 0, 0) * sin(carPitch);
+		carPositionDelta += (float)0.5*carForward;
+		break;
+	case GLUT_KEY_UP:
+		carPitch = left_press_num - right_press_num;
+		carForward = (carForward * cos(carPitch)) + vec3(1, 0, 0) * sin(carPitch);
+		carPositionDelta -= vec3(0.5, 0.5, 0.5)*carForward;
+		break;
+
 	}
 
 
@@ -636,8 +632,8 @@ void sendDataToOpenGL()
 	std::vector<glm::vec3> vertices0;
 	std::vector<glm::vec2> uvs0;
 	std::vector<glm::vec3> normals0;
-	bool obj1 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\plane.obj", vertices0, uvs0, normals0);
-	texture[0] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\grass_texture.bmp"); //default plane texture
+	bool obj1 = loadOBJ("./plane.obj", vertices0, uvs0, normals0);
+	texture[0] = loadBMP_custom("./grass_texture.bmp"); //default plane texture
 	glBindVertexArray(vao[0]);
 	//send vao of obj0 (plane) to openGL
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -690,8 +686,8 @@ void sendDataToOpenGL()
 	std::vector<glm::vec3> vertices1;
 	std::vector<glm::vec2> uvs1;
 	std::vector<glm::vec3> normals1;
-	bool obj2 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\jeep.obj", vertices1, uvs1, normals1);
-	texture[1] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\jeep_texture.bmp");
+	bool obj2 = loadOBJ("./jeep.obj", vertices1, uvs1, normals1);
+	texture[1] = loadBMP_custom("./jeep_texture.bmp");
 	glBindVertexArray(vao[1]);
 
 	//send vao of obj0 (plane) to openGL
@@ -743,8 +739,8 @@ void sendDataToOpenGL()
 	std::vector<glm::vec3> vertices2;
 	std::vector<glm::vec2> uvs2;
 	std::vector<glm::vec3> normals2;
-	bool obj3 = loadOBJ("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\block.obj", vertices2, uvs2, normals2);
-	texture[2] = loadBMP_custom("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\block_texture.bmp");
+	bool obj3 = loadOBJ("./block.obj", vertices2, uvs2, normals2);
+	texture[2] = loadBMP_custom("./block_texture.bmp");
 	glBindVertexArray(vao[2]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
@@ -846,12 +842,12 @@ void sendDataToOpenGL()
 	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_rt.bmp");
 	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_dn.bmp");
 	//faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\siege_up.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_rt.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_lf.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_up.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_dn.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_ft.bmp");
-	faces.push_back("C:\\Users\\cprj2748\\Downloads\\Project2\\sources\\hills_bk.bmp");
+	faces.push_back("./hills_rt.bmp");
+	faces.push_back("./hills_lf.bmp");
+	faces.push_back("./hills_up.bmp");
+	faces.push_back("./hills_dn.bmp");
+	faces.push_back("./hills_ft.bmp");
+	faces.push_back("./hills_bk.bmp");
 
 
 
@@ -866,6 +862,8 @@ void sendDataToOpenGL()
 	glBindVertexArray(-1); //unbind 
 
 						   //@@@@@@@@@@@@@@@@@@@@FINISHED OBJECT : SKYBOX@@@@@@@@@@@@@@@@@@@@@@@
+
+
 
 }
 
@@ -927,11 +925,19 @@ void paintGL(void)
 	vec3 ambientLight(tempAmpAdjust, tempAmpAdjust, tempAmpAdjust);  // RGB light of ambient light
 	glUniform3fv(ambientLightUniformLocation, 1, &ambientLight[0]);
 
-	//light position world   ... for now it's lightPositionWorld, slide 26
+	//point light -- simulating firefly!
+	GLint firefly0PositionWorldUniformLocation = glGetUniformLocation(programID, "firefly0PositionWorld");
+	//vec3 lightPositionWorld(2.0f, 2.0f, 20.0f);
+	vec3 firefly0PositionWorld = tempLight + vec3(10.0, 10.0, 10.0);
+	glUniform3fv(firefly0PositionWorldUniformLocation, 1, &firefly0PositionWorld[0]);
+
+	//single light source
 	GLint lightPositionUniformLocation = glGetUniformLocation(programID, "lightPositionWorld");
 	//vec3 lightPositionWorld(2.0f, 2.0f, 20.0f);
 	vec3 lightPositionWorld = vec3(150.0, -280.0, 60.0);
 	glUniform3fv(lightPositionUniformLocation, 1, &lightPositionWorld[0]);
+
+
 
 	//diffuse
 	GLint diffuseStrengthUniformLocation = glGetUniformLocation(programID, "diffuseStrength");
@@ -964,9 +970,7 @@ void paintGL(void)
 
 	//****************PAINT FIRST OBJECT PLANE*************
 	glBindVertexArray(vao[0]);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
+
 
 	//glm::mat4 store_view = view;
 	//view = glm::mat4(glm::mat3(view));
@@ -982,6 +986,11 @@ void paintGL(void)
 	glUniformMatrix4fv(modelUniformLocation, 1, GL_FALSE, &model[0][0]);
 	glUniformMatrix4fv(viewUniformLocation, 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(projectionUniformLocation, 1, GL_FALSE, &projection[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	glUniform1i(glGetUniformLocation(programID, "texture0"), 0);
+
 
 	glDrawArrays(GL_TRIANGLES, 0, drawSize[0]);
 
@@ -1006,11 +1015,14 @@ void paintGL(void)
 
 	model = modeltranslation0 * modeltranslation1 *  scaleMatrix1;
 
-
+	model = inverse(carMovement)*model;
 
 	model = glm::rotate(model, (float)(left_press_num - right_press_num), vec3(0, 1, 0));
 
-	model = glm::translate(model, vec3(carPositionXdelta, 0, carPositionYdelta));
+
+
+	carMovement = glm::translate(mat4(), carPositionDelta);
+	model = glm::translate(model, carPositionDelta);
 
 	glm::mat4 mvp1 = projection * view * model;
 
@@ -1048,6 +1060,7 @@ void paintGL(void)
 	model =  modeltranslation2 * scaleMatrix2;
 	model = glm::rotate(model, (float)(rotateCounter), glm::vec3(0, 0, 1));
 
+	tempLight = vec3(model* vec4(1.0, 1.0, 1.0, 1.0));
 
 	glm::mat4 mvp2 = projection * view * model;
 
@@ -1113,6 +1126,7 @@ void paintGL(void)
 	//glEnable(GL_DEPTH_TEST);
 	glUseProgram(programID);
 	//******************************************************
+
 
 
 	glFlush();
