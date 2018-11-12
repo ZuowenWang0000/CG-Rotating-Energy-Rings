@@ -26,7 +26,7 @@ using namespace std;
 using glm::vec3;
 using glm::mat4;
 using namespace glm;
-
+int smoothCounter = 0;
 int counter = 0;
 
 int WIDTH = 1920;
@@ -105,6 +105,7 @@ float n_n = 0;
 float f_f = 0;
 float h_h = 0;
 
+mat4 tempModel = mat4(1.0f);
 glm::vec3 cameraPosition = glm::vec3(1.5f, -228.945f, 800.5f);
 glm::vec3 cameraGaze = normalize(glm::vec3(0.0f, -1.01f, -10.3f));
 
@@ -119,6 +120,12 @@ float carYaw = 0;
 float carPitch = 0;
 vec3 carForward = vec3(1.0, 0.0, 0.0);
 
+float moveLightX = 0;
+float moveLightY = 0;
+float moveLightZ = 0;
+
+float rand1;
+float rand2;
 
 //a series utilities for setting shader parameters
 void setMat4(const std::string &name, glm::mat4& value)
@@ -265,22 +272,22 @@ void keyboard(unsigned char key, int x, int y)
 	}
 
 	if (key == 'v') {
-		cameraPosition.x += 12.5;
+		moveLightX += 12;
 	}
 	if (key == 'n') {
-		cameraPosition.x -= 12.5;
+		moveLightX -= 12;
 	}
 	if (key == 'b') {
-		cameraPosition.y += 12.5;
+		moveLightY += 12;
 	}
 	if (key == 'g') {
-		cameraPosition.y -= 12.5;
+		moveLightY -= 12;
 	}
 	if (key == 'h') {
-		cameraPosition.z += 12.5;
+		moveLightZ += 12;
 	}
 	if (key == 'f') {
-		cameraPosition.z -= 12.5;
+		moveLightZ -= 12;
 	}
 
 
@@ -861,7 +868,7 @@ void sendDataToOpenGL()
 
 	glBindVertexArray(-1); //unbind 
 
-						   //@@@@@@@@@@@@@@@@@@@@FINISHED OBJECT : SKYBOX@@@@@@@@@@@@@@@@@@@@@@@
+	//@@@@@@@@@@@@@@@@@@@@FINISHED OBJECT : SKYBOX@@@@@@@@@@@@@@@@@@@@@@@
 
 
 
@@ -890,7 +897,7 @@ void paintGL(void)
 	//******************COMMON MATRIX SECTION********************************
 	counter++;
 
-	if (counter % 100 == 0) {
+	if (counter % 5 == 0) {
 		cout << "camera position: " << cameraPosition.x << "," << cameraPosition.y << "," << cameraPosition.z << endl;
 		cout << "cameraGaze : " << cameraGaze.x << "  " << cameraGaze.y << "  " << cameraGaze.z << endl;
 		cout << "cameraControlable : " << cameraControlable << endl;
@@ -900,6 +907,9 @@ void paintGL(void)
 		cout << "left_press_num  " << left_press_num << "  up_press_num  " << up_press_num << endl;
 		cout << "deltaX  " << carPositionXdelta << "   deltaY  " << carPositionYdelta << endl;
 		cout << "dx  " << dx << "   dy  " << dy << endl;
+		smoothCounter++;
+		rand1 = ((double)rand() / (RAND_MAX)) + 1;
+		rand2 = ((double)rand() / (RAND_MAX)) + 1;
 	}
 
 	glUseProgram(programID);
@@ -928,7 +938,9 @@ void paintGL(void)
 	//point light -- simulating firefly!
 	GLint firefly0PositionWorldUniformLocation = glGetUniformLocation(programID, "firefly0PositionWorld");
 	//vec3 lightPositionWorld(2.0f, 2.0f, 20.0f);
-	vec3 firefly0PositionWorld = tempLight + vec3(10.0, 10.0, 10.0);
+	vec3 firefly0PositionWorld = vec3((float)180*(cos(smoothCounter/180.0f) + rand1/10.0), -379.0f, 10.0 + moveLightZ + (float)180*(sin(smoothCounter/180.0f) + rand2/10.0));
+	cout << "Firefly Position: " << firefly0PositionWorld.x << "  " << firefly0PositionWorld.y << "  " << firefly0PositionWorld.z << endl;
+
 	glUniform3fv(firefly0PositionWorldUniformLocation, 1, &firefly0PositionWorld[0]);
 
 	//single light source
@@ -1015,7 +1027,9 @@ void paintGL(void)
 
 	model = modeltranslation0 * modeltranslation1 *  scaleMatrix1;
 
-	model = inverse(carMovement)*model;
+	//model = tempModel;
+	//model = glm::translate(model, -carPositionDelta);
+	//model = inverse(carMovement)
 
 	model = glm::rotate(model, (float)(left_press_num - right_press_num), vec3(0, 1, 0));
 
@@ -1023,7 +1037,7 @@ void paintGL(void)
 
 	carMovement = glm::translate(mat4(), carPositionDelta);
 	model = glm::translate(model, carPositionDelta);
-
+	tempModel = model;
 	glm::mat4 mvp1 = projection * view * model;
 
 
